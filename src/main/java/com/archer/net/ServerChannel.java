@@ -1,74 +1,101 @@
 package com.archer.net;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
-import com.archer.net.utils.Library;
+import com.archer.log.Logger;
 
 public class ServerChannel {
-
-	private static final String DEFAULT_ANME = "ServerChannel";
-	private static final String WIN_LIB = "lib/libarnet.dll";
-	private static final String LINUX_LIB = "lib/libarnet.so";
+	private static final Logger log = Debugger.getLogger();
 	
 	static {
-		if(!Files.exists(Paths.get("E:/projects/javaProject/maven-package/archer-net/src/main/resources/lib/libarnet.dll"))) {
-			System.out.println("file not exists.");
-		}
-		Library.loadLib("E:/projects/javaProject/maven-package/archer-net/src/main/resources/lib/libarnet.dll");
+		Library.loadDetectLibrary();
 	}
-	
-	protected static void onConnect(byte[] ip, int port, long channelfd) {
-		String ipStr = new String(ip);
-		System.out.println(ipStr+":"+port+" connected.");
-	}
-	
-	protected static void onRead(byte[] data, long channelfd) {
-		System.out.println("receive: " + new String(data));
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			return ;
-		}
-		write("send data".getBytes(), channelfd);
-	}
-	
-	protected static void onDisconnect(long channelfd) {
-		System.out.println("dis connected.");
-	}
-	
-	protected static void onError(byte[] msg) {
-		System.err.println("ERROR: " + new String(msg));
-	}
-	
-	protected static native long init();
-	
-	protected static native void listen(int port, long serverfd);
-	
+
+	protected static native long init(ServerChannel server, boolean ssl);
+
+	protected static native void listen(long serverfd, long loopfd, int jport);
+
 	protected static native void close(long serverfd);
-	
-	protected static native void write(byte[] data, long channelfd);
-	
-	protected static native void closeChannel(long channelfd);
-	
 	
 	private long serverfd;
 	private int port;
-	private ChannelWorker worker;
+	
+	private boolean useSsl;
+	private SslContext sslCtx;
+	
+	private EventLoopFuture future;
+	
+	private EventLoop loop;
+	
+	private volatile boolean running = false;
 	
 	public ServerChannel() {
-		this.serverfd = init();
-		this.worker = new ChannelWorker(DEFAULT_ANME) {
-			@Override
-			public void apply() {
-				listen(port, serverfd);
-			}
-		};
+		this(null);
 	}
 	
-	public void listen(int port) {
+	public ServerChannel(SslContext sslCtx) {
+		if(sslCtx == null) {
+			this.useSsl = false;
+		} else {
+			this.useSsl = true;
+		}
+		this.sslCtx = sslCtx;
+	}
+	
+	private void initServerfd() {
+		this.serverfd = init(this, useSsl);
+	}
+	
+	public void eventLoop(EventLoop loop) {
+		if(this.loop != null) {
+			throw new ChannelException("can not set EventLoop twice.");
+		}
+		this.loop = loop;
+	}
+	
+	public synchronized void listen(int port) {
+		if(running) {
+			return ;
+		}
 		this.port = port;
-		this.worker.start();
+		if(loop == null) {
+			throw new ChannelException("set EventLoop before start ServerChannel");
+		}
+		if(Debugger.enableDebug()) {
+			log.info("server listenning on " + port);
+		}
+		initServerfd();
+		if(useSsl) {
+			sslCtx.setSsl(serverfd, false);
+		}
+		if(!loop.running()) {
+			loop.init();
+		}
+		loop.eventAdd();
+		listen(serverfd, loop.getLoopfd(), port);
+		loop.startLoop();
+		running = true;
+	}
+	
+	public synchronized void close() {
+		if(!running) {
+			return ;
+		}
+		running = false;
+		close(serverfd);
+		loop.eventRemove();
+	}
+	
+	public boolean useSsl() {
+		return useSsl;
+	}
+	
+	protected long getServerfd() {
+		return serverfd;
+	}
+	
+	protected void throwError(byte[] msg) {
+		//native server will be closed when throwing exception 
+		running = false;
+		throw new ChannelException(new String(msg));
 	}
 }

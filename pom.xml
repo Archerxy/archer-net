@@ -4,7 +4,7 @@
 
   <groupId>com.archer</groupId>
   <artifactId>archer-net</artifactId>
-  <version>1.1.0</version>
+  <version>1.1.1</version>
   <packaging>jar</packaging>
 
   <name>archer-net</name>
@@ -19,9 +19,17 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
+
+  <dependencies>
+  	<dependency>
+  	  <groupId>com.archer</groupId>
+	  <artifactId>archer-log</artifactId>
+	  <version>1.1.0</version>
+  	</dependency>
+  </dependencies>
   
   <build>
-    <finalName>archer-net-1.1.0</finalName>
+    <finalName>archer-net-1.1.1</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

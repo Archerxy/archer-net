@@ -1,5 +1,5 @@
 # mvn install to local repository
-mvn install:install-file -DgroupId=com.archer -DartifactId=archer-net -Dversion=1.1.0 -Dpackaging=jar -Dfile=<your-path>\archer-net-1.1.0.jar
+mvn install:install-file -DgroupId="com.archer" -DartifactId="archer-net" -Dversion="1.1.1" -Dpackaging=jar -Dfile=E:\projects\javaProject\maven-package\archer-net\target\archer-net-1.1.1.jar
 
 
 # pom
