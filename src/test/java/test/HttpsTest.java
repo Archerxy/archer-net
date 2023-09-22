@@ -18,8 +18,8 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.security.auth.x500.X500Principal;
 
-import com.archer.net.http.NioRequest;
-import com.archer.net.http.NioResponse;
+import com.archer.net.http.client.NioRequest;
+import com.archer.net.http.client.NioResponse;
 
 public class HttpsTest {
     private static final TrustManager[] NULL_TRUSTED_MGR = new TrustManager[] { 

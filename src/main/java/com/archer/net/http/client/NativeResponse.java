@@ -1,4 +1,4 @@
-package com.archer.net.http;
+package com.archer.net.http.client;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.archer.net.Bytes;
+import com.archer.net.http.HttpException;
+import com.archer.net.http.HttpStatus;
 import com.archer.net.util.HexUtil;
 
 public class NativeResponse {

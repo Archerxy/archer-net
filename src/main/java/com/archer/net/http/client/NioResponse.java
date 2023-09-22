@@ -1,4 +1,4 @@
-package com.archer.net.http;
+package com.archer.net.http.client;
 
 import java.io.IOException;
 import java.util.Arrays;

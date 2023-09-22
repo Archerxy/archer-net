@@ -1,4 +1,4 @@
-package com.archer.net.http;
+package com.archer.net.http.client;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,6 +13,8 @@ import com.archer.net.Channel;
 import com.archer.net.ChannelContext;
 import com.archer.net.EventLoop;
 import com.archer.net.handler.Handler;
+import com.archer.net.http.HttpException;
+import com.archer.net.http.HttpStatus;
 import com.archer.net.SslContext;
 import com.archer.net.ssl.ProtocolVersion;
 
