@@ -1,6 +1,9 @@
 package com.archer.net.http;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +19,9 @@ public class HttpRequest {
     private static final char COLON = ':';
     private static final char SPACE = ' ';
     private static final char ENTER = '\n';
+    private static final char QUM = '?';
+    private static final char EQ = '=';
+    private static final char AND = '&';
     private static final int KEY_START = 1;
     private static final int VAL_START = 2;
     private static final int CHUNKED_LEN = 3;
@@ -56,7 +62,8 @@ public class HttpRequest {
 	private String uri;
 	private String httpVersion;
 	
-	
+
+	private Map<String, String> query;
 	private Map<String, String> headers;
 	private String contentType;
 	private String contentEncoding;
@@ -80,7 +87,6 @@ public class HttpRequest {
 		return remotePort;
 	}
 
-	
 	public String getMethod() {
 		return method;
 	}
@@ -93,8 +99,12 @@ public class HttpRequest {
 		return httpVersion;
 	}
 
-	public String getPropoerty(String key) {
+	public String getHeader(String key) {
 		return headers.getOrDefault(key, null);
+	}
+	
+	public Map<String, String> getQueryParams() {
+		return query;
 	}
 	
 	public String getContentType() {
@@ -117,7 +127,8 @@ public class HttpRequest {
 		method = null;
 		uri = null;
 		httpVersion = null;
-		
+
+		query = new HashMap<>(DEFAULT_HEADER_SIZE);
 		headers = new HashMap<>(DEFAULT_HEADER_SIZE);
 		contentType = null;
 		contentEncoding = null;
@@ -144,10 +155,68 @@ public class HttpRequest {
 
 	protected void setUri(String uri) {
 		uri = uri.trim();
-		if(uri.length() == 0 || uri.charAt(0) != URI_SEP) {
-			uri = URI_SEP + uri;
+		try {
+			uri = URLDecoder.decode(uri, StandardCharsets.UTF_8.name());
+		} catch (UnsupportedEncodingException e) {
+			throw new HttpException(HttpStatus.BAD_REQUEST.getCode(), "decode url '" + uri + "' with utf-8 failed");
 		}
-		this.uri = uri;
+		int K_S = 1, V_S = 2;
+		int state = 0, t = 0;
+		char[] uriChars = uri.toCharArray();
+		String key = null, theUri = null;
+		for(int i = 0; i < uriChars.length; i++) {
+			if(state == 0 && uriChars[i] == QUM) {
+				theUri = new String(Arrays.copyOf(uriChars, i));
+				state = K_S;
+				t = i+1;
+				continue;
+			}
+			if(state == K_S) {
+				boolean ok = false;
+				for(;i < uriChars.length; i++) {
+					if(uriChars[i] == EQ) {
+						ok = true;
+						break ;
+					}
+				}
+				if(ok) {
+					key = new String(Arrays.copyOfRange(uriChars, t, i));
+					state = V_S;
+					t = i+1;
+					continue;
+				} else {
+					throw new HttpException(HttpStatus.BAD_REQUEST.getCode(), "invalid url '" + uri + "'");
+				}
+			}
+			if(state == V_S) {
+				boolean ok = false;
+				for(;i < uriChars.length; i++) {
+					if(uriChars[i] == AND) {
+						ok = true;
+						break ;
+					}
+				}
+				if(ok || i == uriChars.length) {
+					if(key == null) {
+						throw new HttpException(HttpStatus.BAD_REQUEST.getCode(), "invalid url '" + uri + "'");
+					}
+					query.put(key.trim(), new String(Arrays.copyOfRange(uriChars, t, i)).trim());
+					key = null;
+					state = K_S;
+					t = i+1;
+					continue;
+				} else {
+					throw new HttpException(HttpStatus.BAD_REQUEST.getCode(), "invalid url '" + uri + "'");
+				}
+			}
+		}
+		if(theUri == null) {
+			theUri = uri;
+		}
+		if(theUri.length() == 0 || theUri.charAt(0) != URI_SEP) {
+			theUri = URI_SEP + theUri;
+		}
+		this.uri = theUri;
 	}
 	
 	protected void setHttpVersion(String version) throws IOException {

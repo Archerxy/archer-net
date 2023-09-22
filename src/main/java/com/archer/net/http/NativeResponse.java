@@ -217,9 +217,8 @@ public class NativeResponse {
 		    		}
 				}
 			} else {
-				if(i < res.length) {
-					chunkedBody.write(res, i, res.length - i);
-				}
+				chunkedBody.clear();
+				contentLength = 0;
 				finished = true;
 			}
 		} finally {
