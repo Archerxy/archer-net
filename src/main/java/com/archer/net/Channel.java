@@ -19,8 +19,6 @@ public class Channel {
 	protected static native void connect(long loopfd, long channelfd, byte[] host, int port);
 
 	protected static native void validateHostname(long channelfd, byte[] hostname);
-	
-//	protected static native String remoteHost(long channelfd);
 
 	protected static native void close(long channelfd);
 	

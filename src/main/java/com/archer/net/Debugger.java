@@ -5,16 +5,15 @@ import com.archer.log.Logger;
 
 public class Debugger {
 	
-	private static final Logger log;
+	private static Logger log;
 	private static volatile boolean EN_DEBUG;
 	private static String LOGGER_NAME = "ACHER_NET_LOG";
 	
-	static {
-		LogProperties properties = new LogProperties().level("DEBUG");
-		log = Logger.getLoggerAndSetPropertiesIfNotExits(LOGGER_NAME, properties);
-	}
-	
 	public static Logger getLogger() {
+		if(log == null) {
+			LogProperties properties = new LogProperties().level("DEBUG");
+			log = Logger.getLoggerAndSetPropertiesIfNotExits(LOGGER_NAME, properties);
+		}
 		return log;
 	}
 	

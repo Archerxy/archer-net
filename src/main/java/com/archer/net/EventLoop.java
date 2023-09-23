@@ -62,14 +62,11 @@ public class EventLoop {
 		if(threadNum > 0 && !this.pool.isAlive()) {
 			this.pool = new EventThreadPool(threadNum);
 		}
-		if(Debugger.enableDebug()) {
-			log.info("event loop starting = " + run.get());
-		}
 		if(this.future == null || !this.future.isAlive()) {
 			newEventLoopFuture();
 		}
 		if(Debugger.enableDebug()) {
-			log.info("event loop start");
+			log.info("event loop starting");
 		}
 		this.future.start();
 	}
