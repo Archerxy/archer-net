@@ -25,9 +25,6 @@ final class Library {
 	public static void loadDetectLibrary() {
 		if(!libLoadded) {
 			libLoadded = true;
-//			System.load(getCurrentWorkDir() + "src/main/resources/lib/libarnet.dll");
-//			System.load(getCurrentWorkDir() + "/lib/libarnet.so");
-			
 			loadLib();
 		}
 	}
