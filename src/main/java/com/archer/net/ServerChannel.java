@@ -12,7 +12,7 @@ public class ServerChannel {
 
 	protected static native long init(ServerChannel server, boolean ssl);
 
-	protected static native void listen(long serverfd, long loopfd, int jport);
+	protected static native boolean listen(long serverfd, long loopfd, int jport);
 
 	protected static native void close(long serverfd);
 	
@@ -71,7 +71,9 @@ public class ServerChannel {
 			loop.init();
 		}
 		loop.eventAdd();
-		listen(serverfd, loop.getLoopfd(), port);
+		if(!listen(serverfd, loop.getLoopfd(), port)) {
+			return ;
+		}
 		loop.startLoop();
 		running = true;
 	}

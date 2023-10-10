@@ -31,7 +31,7 @@ public abstract class HttpWrappedHandler implements Handler {
 
 	@Override
 	public void onRead(ChannelContext ctx, Bytes in) {
-		if(in.avaliable() <= 0) {
+		if(in.available() <= 0) {
 			return ;
 		}
 		

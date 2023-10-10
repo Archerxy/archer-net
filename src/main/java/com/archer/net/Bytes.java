@@ -39,7 +39,7 @@ public final class Bytes {
 		return write;
 	}
 	
-	public int avaliable() {
+	public int available() {
 		return write - read;
 	}
 	
@@ -204,7 +204,7 @@ public final class Bytes {
 		if(buffer.remaining() < len) {
 			throw new IllegalArgumentException("Buffer underflow.");
 		}
-		if(len > avaliable()) {
+		if(len > available()) {
 			throw new IllegalArgumentException("Bytes underflow.");
 		}
 		buffer.put(read(len));
@@ -244,7 +244,7 @@ public final class Bytes {
 	}
 	
 	public int writeToBytes(Bytes in) {
-		int len = avaliable();
+		int len = available();
 		if(len > 0) {
 			in.write(readAll());
 		}
@@ -252,7 +252,7 @@ public final class Bytes {
 	}
 	
 	public int writeToBytes(Bytes in, int len) {
-		int all = avaliable();
+		int all = available();
 		if(all > 0) {
 			in.write(read(len));
 		}
@@ -260,7 +260,7 @@ public final class Bytes {
 	}
 	
 	public int readFromBytes(Bytes out) {
-		int len = out.avaliable();
+		int len = out.available();
 		if(len > 0) {
 			write(out.readAll());
 		}

@@ -14,15 +14,17 @@ public class Channel {
 
 	protected static native long init(Channel channel, boolean ssl);
 
-	protected static native long setChannel(long channelfd, Channel channel);
+	protected static native void setChannel(long channelfd, Channel channel);
 
-	protected static native void connect(long loopfd, long channelfd, byte[] host, int port);
+	protected static native boolean connect(long loopfd, long channelfd, byte[] host, int port);
 
 	protected static native void validateHostname(long channelfd, byte[] hostname);
 
 	protected static native void close(long channelfd);
 	
 	/*******above are native methods********/
+	
+	private static final long TIMEOUT = 3500;
 	
 	private long channelfd;
 	private volatile boolean active;
@@ -37,6 +39,8 @@ public class Channel {
 	
 	private EventLoopFuture future;
 	private EventLoop loop;
+	
+	private Object lock = new Object();
 		public Channel() {
 		this(null);
 	}
@@ -108,9 +112,10 @@ public class Channel {
 			loop.init();
 		}
 		loop.eventAdd();
-		connect(loop.getLoopfd(), channelfd, host.getBytes(), port);
+		if(!connect(loop.getLoopfd(), channelfd, host.getBytes(), port)) {
+			return ;
+		}
 		loop.startLoop();
-		active = true;
 	}
 	
 	public synchronized void close() {
@@ -139,6 +144,28 @@ public class Channel {
 	public boolean isClientSide() {
 		return clientSide;
 	}
+	
+	/**
+	protected void await() {
+		long start = System.currentTimeMillis();
+		synchronized(lock) {
+			try {
+				lock.wait(TIMEOUT);
+			} catch (InterruptedException ignore) {}
+		}
+		long end = System.currentTimeMillis();
+		if(end - start >= TIMEOUT) {
+			close();
+			throw new ChannelException("connect timeout");
+		}
+	}
+	
+	protected void releaseOnConnect() {
+		synchronized(lock) {
+			lock.notifyAll();
+		}
+	}
+	*/
 	
 	protected void setActive(boolean active) {
 		this.active = active;

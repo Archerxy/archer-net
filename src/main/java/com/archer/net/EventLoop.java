@@ -65,9 +65,6 @@ public class EventLoop {
 		if(this.future == null || !this.future.isAlive()) {
 			newEventLoopFuture();
 		}
-		if(Debugger.enableDebug()) {
-			log.info("event loop starting");
-		}
 		this.future.start();
 	}
 	
@@ -91,12 +88,19 @@ public class EventLoop {
 		this.future = new EventLoopFuture(T_NAME) {
 			@Override
 			public void apply() {
-				EventLoop.run(loopfd);
-				loopfd = 0;
-				run.set(false);
-				EventLoop.this.future = null;
-				if(Debugger.enableDebug()) {
-					log.info("event loop exits");
+				if(loopfd != 0) {
+					if(Debugger.enableDebug()) {
+						log.info("event loop starting");
+					}
+					EventLoop.run(loopfd);
+					loopfd = 0;
+					run.set(false);
+					EventLoop.this.future = null;
+					if(Debugger.enableDebug()) {
+						log.info("event loop exits");
+					}
+				} else {
+					run.set(false);
 				}
 			}};
 	}
@@ -161,12 +165,14 @@ public class EventLoop {
 	}
 
 	protected void onError(Channel channel, byte[] msg) {
+		channel.setActive(false);
 		ChannelContext ctx = findChannelContext(channel);
+		String errMsg = new String(msg).trim();
 		if(this.pool != null) {
-			pool.executeOnError(ctx, new ChannelException(new String(msg)));
+			pool.executeOnError(ctx, new ChannelException(errMsg));
 		} else {
     		try {
-    			ctx.onError(new ChannelException(new String(msg)));
+    			ctx.onError(new ChannelException(errMsg));
     		} catch(Exception e) {
     			System.err.println("the last handler did not handle the exception.");
     			e.printStackTrace();
@@ -179,6 +185,10 @@ public class EventLoop {
 		try {
 			ctx.onSslCertificate(cert);
 		} catch(Exception ignore) {}
+	}
+	
+	protected void onLoopClose() {
+		this.loopfd = 0;
 	}
 	
 

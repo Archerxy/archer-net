@@ -81,7 +81,7 @@ public class P2PBaseHandler implements Handler {
 			byte[] text = in.readAll();
 			int head = 4 + 1;
 			Bytes out = new Bytes(head + text.length);
-			out.writeInt32(in.avaliable());
+			out.writeInt32(in.available());
 			if(text.length > Bytes.BUFFER_SIZE) {
 				out.writeInt8(COMPRESS);
 				text = Compresser.compress(text);
@@ -102,10 +102,10 @@ public class P2PBaseHandler implements Handler {
 					compressed = compress == COMPRESS;
 					data = new byte[dataLen];
 					pos = 0;
-					readCount = dataLen > in.avaliable() ? in.avaliable() : dataLen;
+					readCount = dataLen > in.available() ? in.available() : dataLen;
 				} else {
 					int remain = data.length - pos;
-					readCount = remain > in.avaliable() ? in.avaliable() : remain;
+					readCount = remain > in.available() ? in.available() : remain;
 				}
 				in.read(data, pos, readCount);
 				pos += readCount;

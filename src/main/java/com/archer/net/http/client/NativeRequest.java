@@ -420,6 +420,9 @@ public class NativeRequest {
 		}
 		
 		public void await() {
+			if(err != null) {
+				throw err;
+			}
 			long start = System.currentTimeMillis();
 			synchronized(lock) {
 				try {
@@ -451,7 +454,7 @@ public class NativeRequest {
 		}
 		@Override
 		public void onError(ChannelContext ctx, Throwable t) {
-			err = new HttpException(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), t.getMessage());
+			err = new HttpException(HttpStatus.SERVICE_UNAVAILABLE.getCode(), t.getMessage());
 			synchronized(lock) {
 				lock.notifyAll();
 			}

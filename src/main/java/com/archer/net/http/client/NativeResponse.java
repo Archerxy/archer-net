@@ -237,7 +237,7 @@ public class NativeResponse {
 		try {
 			if(isChunked) {
 				int s = 0, len = 0, state = CHUNKED_LEN;
-				if(remainBody.avaliable() > 0) {
+				if(remainBody.available() > 0) {
 					remainBody.write(content);
 					content = remainBody.readAll();
 				}
@@ -265,12 +265,12 @@ public class NativeResponse {
 		    		}
 				}
 			} else {
-				if(content.length + chunkedBody.avaliable() > this.contentLength) {
+				if(content.length + chunkedBody.available() > this.contentLength) {
 					throw new HttpException(HttpStatus.BAD_REQUEST.getCode(),
 							"content bytes over flow.");
 				}
 				chunkedBody.write(content);
-				if(chunkedBody.avaliable() >= this.contentLength) {
+				if(chunkedBody.available() >= this.contentLength) {
 					finished = true;
 				}
 			}
