@@ -363,7 +363,6 @@ public class NativeRequest {
 						char[] hostChars = Arrays.copyOfRange(urlChars, t, i);
 						host = new String(hostChars);
 						port = PROTOCOL_HTTPS.equals(protocol) ? 443 :80;
-						i++;
 						break;
 					}
 					if(i >= urlChars.length - 1) {
@@ -382,7 +381,6 @@ public class NativeRequest {
 						if(urlChars[i] == SLASH) {
 							char[] portChars = Arrays.copyOfRange(urlChars, t, i);
 							port = Integer.parseInt(new String(portChars));
-							i++;
 							break ;
 						}
 						if(i >= urlChars.length - 1) {
@@ -416,6 +414,7 @@ public class NativeRequest {
 		HttpException err;
 		
 		HttpRequestHandler(Bytes requestData) {
+			System.out.println(new String(requestData.array()));
 			this.requestData = requestData;
 		}
 		

@@ -742,25 +742,41 @@ public class NioRequest {
 					if(urlChars[i] == COLON) {
 						char[] hostChars = Arrays.copyOfRange(urlChars, t, i);
 						host = new String(hostChars);
-						t = i + 1;
-						continue;
+						i++;
+						break;
 					}
 					if(urlChars[i] == SLASH) {
-						if(host == null) {
-							char[] hostChars = Arrays.copyOfRange(urlChars, t, i);
-							host = new String(hostChars);
-						} else {
-							char[] portChars = Arrays.copyOfRange(urlChars, t, i);
-							port = Integer.parseInt(new String(portChars));
-						}
+						char[] hostChars = Arrays.copyOfRange(urlChars, t, i);
+						host = new String(hostChars);
+						port = PROTOCOL_HTTPS.equals(protocol) ? 443 :80;
 						break;
+					}
+					if(i >= urlChars.length - 1) {
+						char[] hostChars = Arrays.copyOfRange(urlChars, t, urlChars.length);
+						host = new String(hostChars);
+						port = PROTOCOL_HTTPS.equals(protocol) ? 443 :80;
 					}
 				}
 			} catch(Exception e) {
 				throw new IllegalArgumentException("invalid http url " + httpUrl);
 			}
-			if(host == null) {
-				host = new String(Arrays.copyOfRange(urlChars, t, i));
+			if(i < urlChars.length && port == 0) {
+				try {
+					t = i;
+					for(; i < urlChars.length; i++) {
+						if(urlChars[i] == SLASH) {
+							char[] portChars = Arrays.copyOfRange(urlChars, t, i);
+							port = Integer.parseInt(new String(portChars));
+							break ;
+						}
+						if(i >= urlChars.length - 1) {
+							char[] portChars = Arrays.copyOfRange(urlChars, t, urlChars.length);
+							port = Integer.parseInt(new String(portChars));
+						}
+					}
+				} catch(Exception e) {
+					throw new IllegalArgumentException("invalid http url " + httpUrl);
+				}
 			}
 			uri = new String(Arrays.copyOfRange(urlChars, i, urlChars.length));
             if (uri.length() == 0) {
