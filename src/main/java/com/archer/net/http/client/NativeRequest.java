@@ -414,7 +414,6 @@ public class NativeRequest {
 		HttpException err;
 		
 		HttpRequestHandler(Bytes requestData) {
-			System.out.println(new String(requestData.array()));
 			this.requestData = requestData;
 		}
 		
@@ -430,7 +429,7 @@ public class NativeRequest {
 			}
 			long end = System.currentTimeMillis();
 			if(end - start >= TIMEOUT) {
-				throw new HttpException(HttpStatus.BAD_REQUEST.getCode(), "connect time out");
+				throw new HttpException(HttpStatus.BAD_REQUEST.getCode(), "connect timeout");
 			}
 		}
 

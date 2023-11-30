@@ -145,28 +145,6 @@ public class Channel {
 		return clientSide;
 	}
 	
-	/**
-	protected void await() {
-		long start = System.currentTimeMillis();
-		synchronized(lock) {
-			try {
-				lock.wait(TIMEOUT);
-			} catch (InterruptedException ignore) {}
-		}
-		long end = System.currentTimeMillis();
-		if(end - start >= TIMEOUT) {
-			close();
-			throw new ChannelException("connect timeout");
-		}
-	}
-	
-	protected void releaseOnConnect() {
-		synchronized(lock) {
-			lock.notifyAll();
-		}
-	}
-	*/
-	
 	protected void setActive(boolean active) {
 		this.active = active;
 	}
