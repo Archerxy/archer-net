@@ -522,12 +522,7 @@ public class NioRequest {
         @Override
         public void checkClientTrusted(X509Certificate[] chain, String authType) {}
         @Override
-        public void checkServerTrusted(X509Certificate[] chain, String authType) {
-            System.out.println("check cert");
-			for(X509Certificate cert :chain) {
-	            System.out.println("Subject: " + cert.getSubjectDN());
-			}
-        }
+        public void checkServerTrusted(X509Certificate[] chain, String authType) {}
         @Override
         public X509Certificate[] getAcceptedIssuers() {return null;}@Override
 		public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) {}
@@ -536,12 +531,7 @@ public class NioRequest {
 		@Override
 		public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {}
 		@Override
-		public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
-            System.out.println("server check cert");
-			for(X509Certificate cert :chain) {
-	            System.out.println("Subject: " + cert.getSubjectDN());
-			}
-		}
+		public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {}
     }};
 	
 	public static class Options {
