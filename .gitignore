@@ -1,5 +1,4 @@
 target/*
-crt/*
 logs/*
 src/test/*
 mvn.txt
