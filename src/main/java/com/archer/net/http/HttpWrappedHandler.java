@@ -2,7 +2,6 @@ package com.archer.net.http;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.archer.log.Logger;
 import com.archer.net.Bytes;
 import com.archer.net.Channel;
 import com.archer.net.ChannelContext;
@@ -11,8 +10,6 @@ import com.archer.net.handler.Handler;
 
 
 public abstract class HttpWrappedHandler implements Handler {
-	
-	private static final Logger log = Debugger.getLogger();
 	
 	private static ConcurrentHashMap<ChannelContext, HttpContext> contextCache = new ConcurrentHashMap<>();
     
@@ -53,7 +50,7 @@ public abstract class HttpWrappedHandler implements Handler {
 			}
 			if(req.isFinished()) {
 				if(Debugger.enableDebug()) {
-					log.debug("http request finished, content-length = {}", req.getContentLength());
+					System.out.println("http request finished, content-length is " + req.getContentLength());
 				}
 				try {
 					handle(req, res);
@@ -61,7 +58,7 @@ public abstract class HttpWrappedHandler implements Handler {
 					handleException(req, res, e);
 				}
 				if(Debugger.enableDebug()) {
-					log.debug("http response, content-length = {}", res.getContentLength());
+					System.out.println("http response, content-length is" + res.getContentLength());
 				}
 				onWrite(ctx, new Bytes(res.toBytes()));
 			}

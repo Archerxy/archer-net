@@ -2,11 +2,7 @@ package com.archer.net;
 
 import java.nio.charset.StandardCharsets;
 
-import com.archer.log.Logger;
-
 public class Channel {
-	
-	private static final Logger log = Debugger.getLogger();
 	
 	static {
 		Library.loadDetectLibrary();
@@ -69,7 +65,7 @@ public class Channel {
 	
 	private synchronized void initChannelfd() {
 		if(Debugger.enableDebug()) {
-			log.info("initializing channel");
+			System.out.println("initializing channel");
 		}
 		this.channelfd = init(this, useSsl);
 	}
@@ -99,7 +95,7 @@ public class Channel {
 		this.host = host;
 		this.port = port;
 		if(Debugger.enableDebug()) {
-			log.info("starting connect to {}:{}", host, port);
+			System.out.println("starting connect to " + host + ":" + port);
 		}
 		if(loop == null) {
 			throw new ChannelException("set EventLoop before start Channel");

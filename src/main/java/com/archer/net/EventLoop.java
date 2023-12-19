@@ -2,12 +2,9 @@ package com.archer.net;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.archer.log.Logger;
 import com.archer.net.handler.Handler;
 
 public class EventLoop {
-	
-	private static final Logger log = Debugger.getLogger();
 	
 	private static final String T_NAME = "event_loop";
 	
@@ -90,14 +87,14 @@ public class EventLoop {
 			public void apply() {
 				if(loopfd != 0) {
 					if(Debugger.enableDebug()) {
-						log.info("event loop starting");
+						System.out.println("event loop starting");
 					}
 					EventLoop.run(loopfd);
 					loopfd = 0;
 					run.set(false);
 					EventLoop.this.future = null;
 					if(Debugger.enableDebug()) {
-						log.info("event loop exits");
+						System.out.println("event loop exits");
 					}
 				} else {
 					run.set(false);

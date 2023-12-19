@@ -1,12 +1,9 @@
 package com.archer.net;
 
-import com.archer.log.Logger;
 import com.archer.net.handler.Handler;
 import com.archer.net.message.OutputMessage;
 
 public class ChannelContext {
-	
-	Logger log = Debugger.getLogger();
 	
 	private Handler handler;
 	
@@ -65,7 +62,7 @@ public class ChannelContext {
 				EventLoop.write(channel.getChannelfd(), output.readAll());
 			} else {
 				if(Debugger.enableDebug()) {
-					log.warn("channel is not active, writting is not supported");
+					System.err.println("channel is not active, writting is not supported");
 				}
 			}
 		}

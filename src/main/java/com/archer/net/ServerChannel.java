@@ -1,10 +1,7 @@
 package com.archer.net;
 
 
-import com.archer.log.Logger;
-
 public class ServerChannel {
-	private static final Logger log = Debugger.getLogger();
 	
 	static {
 		Library.loadDetectLibrary();
@@ -61,7 +58,7 @@ public class ServerChannel {
 			throw new ChannelException("set EventLoop before start ServerChannel");
 		}
 		if(Debugger.enableDebug()) {
-			log.info("server listenning on " + port);
+			System.out.println("server listenning on " + port);
 		}
 		initServerfd();
 		if(useSsl) {

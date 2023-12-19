@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import com.archer.log.Logger;
 import com.archer.net.Bytes;
 import com.archer.net.Channel;
 import com.archer.net.ChannelContext;
@@ -15,8 +14,6 @@ import com.archer.net.SslContext;
 
 
 public class P2PChannel {
-	
-	private static final Logger log = Debugger.getLogger();
 	
 	private Set<EndPoint> peers;
 	
@@ -83,7 +80,7 @@ public class P2PChannel {
 			}
 		}
 		if(Debugger.enableDebug()) {
-			log.warn("can not found peer channel {} while send message", peer.enpoint());
+			System.err.println("can not found peer channel " + peer.enpoint() + " while send message");
 		}
 	}
 	
