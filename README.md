@@ -6,7 +6,7 @@ support encrypted key and encrypted certificate
 mvn package '-Dmaven.test.skip=true'
 mvn install:install-file -DgroupId="com.archer" -DartifactId="archer-net" -Dversion="1.1.3" -Dpackaging=jar -Dfile=<your work dir>\target\archer-net-1.1.3.jar
 
-## gmssl support examples 
+## gmssl examples 
 ``` java 
     String root = getCurrentWorkDir();
 
