@@ -1,5 +1,7 @@
 # archer-net
-network framework written native c, support latest openssl(gmssl)
+network framework written native c, support latest openssl(gmssl) 1.3 
+support encrypted key and encrypted certificate 
+ 
 ## gmssl support examples 
 ``` java 
     String root = getCurrentWorkDir();
