@@ -19,7 +19,7 @@ public class HttpResponse {
     private static final String HEADER_DATE = "Date";
     private static final String[] HEADER_KEY = {"Server", "Connection"};
 	private static final String[] HEADER_VAL = 
-		{"Java/"+System.getProperty("java.version"), "close"};
+		{"Archer HTTP Server", "close"};
 	private static final String HEADER_CONTENT_TYPE = "Content-type";
     private static final String HEADER_CONTENT_LENGTH = "Content-length";
 
