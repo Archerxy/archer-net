@@ -87,7 +87,11 @@ public class NativeResponse {
 	public int getContentLength() {
 		return contentLength;
 	}
-
+	
+	public String getContentEncoding() {
+		return contentEncoding;
+	}
+	
 	public void setContentEncoding(String contentEncoding) {
 		this.contentEncoding = contentEncoding;
 	}
