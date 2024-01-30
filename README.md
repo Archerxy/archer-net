@@ -80,7 +80,7 @@ mvn install:install-file -DgroupId="com.archer" -DartifactId="archer-net" -Dvers
 
         //start a gmssl server
         System.out.println("start server.");
-        SslContext opt = new SslContext().trustCertificateAuth(caBytes).useCertificate(crtBytes, keyBytes).encrt(enCrtBytes).enkey(enKeyBytes);
+        SslContext opt = new SslContext().trustCertificateAuth(caBytes).useCertificate(crtBytes, keyBytes).useEncryptCertificate(enCrtBytes, enKeyBytes);
         ServerChannel server = new ServerChannel(opt);
         server.eventLoop(loop);
         server.listen(8081);
@@ -89,7 +89,7 @@ mvn install:install-file -DgroupId="com.archer" -DartifactId="archer-net" -Dvers
         Thread.sleep(1000);
 
         //start a gmssl client
-        SslContext cliopt = new SslContext().trustCertificateAuth(caBytes).useCertificate(clicrtBytes, clikeyBytes).encrt(enClicrtBytes).enkey(enClikeyBytes);
+        SslContext cliopt = new SslContext().trustCertificateAuth(caBytes).useCertificate(clicrtBytes, clikeyBytes).useEncryptCertificate(enClicrtBytes, enClikeyBytes);
         Channel cli = new Channel(cliopt);
         cli.eventLoop(loop);
         cli.connect("127.0.0.1", 8081);
