@@ -1,6 +1,6 @@
 # archer-net
-network framework written native c, support latest openssl(gmssl) 1.3  
-support encrypted key and encrypted certificate 
+network framework written native c, support latest openssl(gmssl) 1.3 
+support encrypted key and encrypted certificate  
 
 ## gmssl examples 
 ``` java 
@@ -76,7 +76,7 @@ support encrypted key and encrypted certificate
 
         //start a gmssl server
         System.out.println("start server.");
-        SslContext opt = new SslContext().trustCertificateAuth(caBytes).useCertificate(crtBytes, keyBytes).useEncryptCertificate(enCrtBytes, enKeyBytes);
+        SslContext opt = new SslContext().trustCertificateAuth(caBytes).useCertificate(crtBytes, keyBytes).encrt(enCrtBytes).enkey(enKeyBytes);
         ServerChannel server = new ServerChannel(opt);
         server.eventLoop(loop);
         server.listen(8081);
@@ -85,7 +85,7 @@ support encrypted key and encrypted certificate
         Thread.sleep(1000);
 
         //start a gmssl client
-        SslContext cliopt = new SslContext().trustCertificateAuth(caBytes).useCertificate(clicrtBytes, clikeyBytes).useEncryptCertificate(enClicrtBytes, enClikeyBytes);
+        SslContext cliopt = new SslContext().trustCertificateAuth(caBytes).useCertificate(clicrtBytes, clikeyBytes).encrt(enClicrtBytes).enkey(enClikeyBytes);
         Channel cli = new Channel(cliopt);
         cli.eventLoop(loop);
         cli.connect("127.0.0.1", 8081);
