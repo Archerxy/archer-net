@@ -161,6 +161,9 @@ public class HttpResponse {
 		if(localVersion == null) {
 			localVersion = DEFAULT_VSERSION;
 		}
+		if(status == null) {
+			status = HttpStatus.OK.getStatus();
+		}
 		sb.append(localVersion).append(SPACE).append(status).append(ENTER);
 		
 		String encode = getContentEncoding();
