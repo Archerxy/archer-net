@@ -108,10 +108,16 @@ public class HttpRequest {
 	}
 	
 	public String getContentType() {
+		if(contentType == null) {
+			contentType = ContentType.APPLICATION_JSON.getName();
+		}
 		return contentType;
 	}
 
 	public String getContentEncoding() {
+		if(contentEncoding == null) {
+			contentEncoding = DEFAULT_ENCODING_VAL;
+		}
 		return contentEncoding;
 	}
 

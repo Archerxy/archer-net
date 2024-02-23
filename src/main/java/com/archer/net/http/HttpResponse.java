@@ -78,6 +78,9 @@ public class HttpResponse {
 	}
 
 	public String getContentType() {
+		if(contentType == null) {
+			contentType = ContentType.APPLICATION_JSON.getName();
+		}
 		return contentType;
 	}
 
@@ -88,10 +91,9 @@ public class HttpResponse {
 
 	public String getContentEncoding() {
 		if(contentEncoding == null) {
-			return DEFAULT_ENCODING_VAL;
-		} else {
-			return contentEncoding;
+			contentEncoding = DEFAULT_ENCODING_VAL;
 		}
+		return contentEncoding;
 	}
 
 	public void setContentEncoding(String contentEncoding) 
