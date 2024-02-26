@@ -117,13 +117,13 @@ public class HttpResponse {
 	
 	public void setHeader(String k, String v) {
 		if(k != null) {
-			headers.put(k, v);
+			headers.put(k.toLowerCase(), v);
 		}
 	}
 	
 	public String getHeader(String k) {
 		if(k != null) {
-			return headers.getOrDefault(k, null);
+			return headers.getOrDefault(k.toLowerCase(), null);
 		}
 		return null;
 	}

@@ -99,8 +99,11 @@ public class HttpRequest {
 		return httpVersion;
 	}
 
-	public String getHeader(String key) {
-		return headers.getOrDefault(key, null);
+	public String getHeader(String k) {
+		if(k != null) {
+			return headers.getOrDefault(k.toLowerCase(), null);
+		}
+		return null;
 	}
 	
 	public Map<String, String> getQueryParams() {
