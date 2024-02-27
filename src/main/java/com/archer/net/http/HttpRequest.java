@@ -101,7 +101,7 @@ public class HttpRequest {
 
 	public String getHeader(String k) {
 		if(k != null) {
-			return headers.getOrDefault(k.toLowerCase(), null);
+			return headers.getOrDefault(toLowerCase(k), null);
 		}
 		return null;
 	}
@@ -151,6 +151,22 @@ public class HttpRequest {
 		chunkedBody.clear();
 	}
 
+	protected static String toLowerCase(String k) {
+		if(k == null || k.isEmpty()) {
+			return k;
+		}
+		char[] cs = k.toCharArray();
+		if('A' <= cs[0] && cs[0] <= 'Z') {
+			cs[0] = (char) (cs[0] + 32);
+		}
+		for(int i = 1; i < k.length() - 1; i++) {
+			if(cs[i] == '-' && 'A' <= cs[i+1] && cs[i+1] <= 'Z') {
+				cs[i+1] = (char) (cs[i+1] + 32);
+			}
+		}
+		return new String(cs);
+	}
+	
 	protected void setMethod(String method) throws IOException {
 		if(!GET.equals(method) &&
 			!POST.equals(method) &&
@@ -289,7 +305,7 @@ public class HttpRequest {
 	    				throw new HttpException(HttpStatus.BAD_REQUEST);
 	    			}
 	    			val = new String(Arrays.copyOfRange(msg, p, i)).trim();
-	    			headers.put(key.toLowerCase(), val);
+	    			headers.put(toLowerCase(key), val);
 	    			p = i + 1;
 	    			state = KEY_START;
 	    		}
