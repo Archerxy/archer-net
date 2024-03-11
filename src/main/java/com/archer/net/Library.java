@@ -6,7 +6,9 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
+
+import com.archer.net.util.Sha256Util;
 
 final class Library {
 
@@ -47,29 +49,44 @@ final class Library {
 			throw new RuntimeException("platform "+CUR_OS+" not supported.");
 		}
 		
-		Path dst = Paths.get(HOME.toString(), resource);
-		if(!Files.exists(dst)) {
-			Path parent = dst.getParent();
-			if(!Files.exists(parent)) {
-				try {
-					Files.createDirectories(parent);
-				} catch (IOException e) {
-					throw new RuntimeException("can not mkdir " + parent.toString());
+		Path dstPath = Paths.get(HOME.toString(), resource);
+		try(InputStream stream = Thread.currentThread().getContextClassLoader()
+				.getResourceAsStream(resource);) {
+			byte[] buf = new byte[5 * 1024 * 1024];
+			int off = 0, count = 0;
+			while((count = stream.read(buf, off, buf.length - off)) >= 0) {
+				off += count;
+			}
+			byte[] src = Arrays.copyOfRange(buf, 0, off);
+			boolean needWrite = false;
+			if(!Files.exists(dstPath)) {
+				needWrite = true;
+			} else {
+				byte[] dst = Files.readAllBytes(dstPath);
+				if(src.length != dst.length) {
+					needWrite = true;
+				} else {
+					byte[] srcHash = Sha256Util.hash(src);
+					byte[] dstHash = Sha256Util.hash(dst);
+					needWrite = isDifferent(srcHash, dstHash);
 				}
 			}
-			try(InputStream stream = Thread.currentThread().getContextClassLoader()
-					.getResourceAsStream(resource);) {
-				byte[] resourceBytes = new byte[stream.available()];
-				int off = 0, count = 0;
-				while((count = stream.read(resourceBytes, off, resourceBytes.length - off)) > 0) {
-					off += count;
-				}
-				writeFile(resourceBytes, dst);
-			} catch(Exception e) {
-				throw new RuntimeException("internal error: " + e.getLocalizedMessage());
+			if(needWrite) {
+				writeFile(src, dstPath);
+			}
+		} catch(Exception e) {
+			throw new RuntimeException("internal error: " + e.getLocalizedMessage());
+		}
+		System.load(dstPath.toAbsolutePath().toString());
+	}
+	
+	private static boolean isDifferent(byte[] src, byte[] dst) {
+		for(int i = 0; i < 32; i++) {
+			if(src[i] != dst[i]) {
+				return true;
 			}
 		}
-		System.load(dst.toAbsolutePath().toString());
+		return false;
 	}
 	
 	private static void writeFile(byte[] data, Path dst) {
@@ -82,7 +99,7 @@ final class Library {
 			}
 		}
 		try {
-			Files.write(dst, data, StandardOpenOption.CREATE);
+			Files.write(dst, data);
 		} catch (IOException e) {
 			throw new RuntimeException("internal error: " + e.getLocalizedMessage());
 		}
