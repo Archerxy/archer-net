@@ -1,5 +1,6 @@
 package com.archer.net;
 
+import com.archer.net.ssl.SslContext;
 
 public class ServerChannel {
 	
@@ -7,21 +8,36 @@ public class ServerChannel {
 		Library.loadDetectLibrary();
 	}
 
-	protected static native long init(ServerChannel server, boolean ssl);
+	protected static native long init(ServerChannel server);
 
-	protected static native boolean listen(long serverfd, long loopfd, int jport);
+	protected static native void useThreadPool(long serverfd, int threadNum);
+	
+	protected static native boolean listen(long serverfd, byte[] host, int port);
 
 	protected static native void close(long serverfd);
 	
+	protected void onAccept(long channelfd, byte[] host, int port) {
+		Channel channel = new Channel(channelfd, host, port);
+		if(handlerList != null) {
+			channel.handlerList(handlerList);
+			handlerList.onAccept(channel);
+		}
+	}
+	
+	protected void throwError(byte[] msg) {
+		close(serverfd);
+		running = false;
+		throw new ChannelException(new String(msg));
+	}
+	
 	private long serverfd;
+	private String host;
 	private int port;
 	
-	private boolean useSsl;
+	private int threadNum;
 	private SslContext sslCtx;
-	
-	private EventLoopFuture future;
-	
-	private EventLoop loop;
+	private HandlerList handlerList;
+	private ChannelFuture future;
 	
 	private volatile boolean running = false;
 	
@@ -30,49 +46,50 @@ public class ServerChannel {
 	}
 	
 	public ServerChannel(SslContext sslCtx) {
-		if(sslCtx == null) {
-			this.useSsl = false;
-		} else {
-			this.useSsl = true;
-		}
 		this.sslCtx = sslCtx;
 	}
 	
-	private void initServerfd() {
-		this.serverfd = init(this, useSsl);
+	public void useMultithreads(int threadNum) {
+		this.threadNum = threadNum;
 	}
 	
-	public void eventLoop(EventLoop loop) {
-		if(this.loop != null) {
-			throw new ChannelException("can not set EventLoop twice.");
-		}
-		this.loop = loop;
+	public void handlerList(HandlerList handlerList) {
+		System.out.println("server channel add handler list");
+		this.handlerList = handlerList;
 	}
 	
-	public synchronized void listen(int port) {
+	public HandlerList handlerList() {
+		return handlerList;
+	}
+	
+	public synchronized void listen(String host, int port) {
 		if(running) {
 			return ;
 		}
+		this.host = host;
 		this.port = port;
-		if(loop == null) {
-			throw new ChannelException("set EventLoop before start ServerChannel");
+		this.serverfd = init(this);
+		if(threadNum > 0) {
+			useThreadPool(serverfd, threadNum);
 		}
 		if(Debugger.enableDebug()) {
 			System.out.println("server listenning on " + port);
 		}
-		initServerfd();
-		if(useSsl) {
-			sslCtx.setSsl(serverfd, false);
+		if(sslCtx != null) {
+			if(sslCtx.isClientMode()) {
+				throw new ChannelException("can not use a client-side sslcontext within server channel");
+			}
+			sslCtx.setSsl(serverfd);
 		}
-		if(!loop.running()) {
-			loop.init();
-		}
-		loop.eventAdd();
-		if(!listen(serverfd, loop.getLoopfd(), port)) {
-			return ;
-		}
-		loop.startLoop();
-		running = true;
+
+		this.future = new ChannelFuture(host+port) {
+			public void apply() {
+				running = true;
+				listen(serverfd, host.getBytes(), port);
+				running = false;
+			}
+		};
+		this.future.start();
 	}
 	
 	public synchronized void close() {
@@ -81,20 +98,9 @@ public class ServerChannel {
 		}
 		running = false;
 		close(serverfd);
-		loop.eventRemove();
-	}
-	
-	public boolean useSsl() {
-		return useSsl;
 	}
 	
 	protected long getServerfd() {
 		return serverfd;
-	}
-	
-	protected void throwError(byte[] msg) {
-		//native server will be closed when throwing exception 
-		running = false;
-		throw new ChannelException(new String(msg));
 	}
 }

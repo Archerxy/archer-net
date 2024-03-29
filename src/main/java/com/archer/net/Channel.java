@@ -1,6 +1,6 @@
 package com.archer.net;
 
-import java.nio.charset.StandardCharsets;
+import com.archer.net.ssl.SslContext;
 
 public class Channel {
 	
@@ -8,15 +8,47 @@ public class Channel {
 		Library.loadDetectLibrary();
 	}
 
-	protected static native long init(Channel channel, boolean ssl);
+	protected static native long init(Channel channel);
 
 	protected static native void setChannel(long channelfd, Channel channel);
 
-	protected static native boolean connect(long loopfd, long channelfd, byte[] host, int port);
+	protected static native void write(long channelfd, byte[] data);
 
-	protected static native void validateHostname(long channelfd, byte[] hostname);
+	protected static native boolean connect(long channelfd, byte[] host, int port);
 
 	protected static native void close(long channelfd);
+	
+	protected void onConnect() {
+		if(handlerList != null) {
+			handlerList.onConnect(this);
+		}
+	}
+	protected void onRead(byte[] data) {
+		if(handlerList != null) {
+			handlerList.onRead(this, data);
+		}
+	}
+	protected void onDisconnect() {
+		if(handlerList != null) {
+			handlerList.onDisconnect(this);
+		}
+	}
+	protected void onError(byte[] msg) {
+		if(handlerList != null) {
+			handlerList.onError(this, msg);
+		}
+	}
+	protected void onCertCallback(byte[] crt) {
+		if(handlerList != null) {
+			handlerList.onCertCallback(this, crt);
+		}
+	}
+	
+	protected void throwError(byte[] msg) {
+		active = false;
+		throw new ChannelException(new String(msg));
+	}
+	
 	
 	/*******above are native methods********/
 	
@@ -29,23 +61,13 @@ public class Channel {
 	
 	private String host;
 	private int port;
-	
-	private boolean useSsl;
 	private SslContext sslCtx;
-	
-	private EventLoopFuture future;
-	private EventLoop loop;
-	
-	private Object lock = new Object();
+	private HandlerList handlerList;
+	private ChannelFuture future;
 		public Channel() {
 		this(null);
 	}
-		public Channel(SslContext sslCtx) {		
-		if(sslCtx == null) {
-			this.useSsl = false;
-		} else {
-			this.useSsl = true;
-		}
+		public Channel(SslContext sslCtx) {
 		this.sslCtx = sslCtx;
 		this.clientSide = true;
 	}
@@ -53,9 +75,8 @@ public class Channel {
 	/**
 	 * for server connected channel
 	 * */
-	protected Channel(long channelfd, byte[] host, int port, boolean useSsl) {
+	protected Channel(long channelfd, byte[] host, int port) {
 		this.channelfd = channelfd;
-		this.useSsl = useSsl;
 		this.port = port;
 		this.active = true;
 		this.clientSide = false;
@@ -67,25 +88,15 @@ public class Channel {
 		if(Debugger.enableDebug()) {
 			System.out.println("initializing channel");
 		}
-		this.channelfd = init(this, useSsl);
+		this.channelfd = init(this);
 	}
 
-	public void eventLoop(EventLoop loop) {
-		if(this.loop != null) {
-			throw new ChannelException("can not set EventLoop twice.");
-		}
-		this.loop = loop;
+	public void handlerList(HandlerList handlerList) {
+		this.handlerList = handlerList;
 	}
 	
-	public EventLoop handlerLoop() {
-		return loop;
-	}
-	
-	public Channel validateHostname(String hostname) {
-		if(useSsl) {
-			validateHostname(channelfd, hostname.getBytes(StandardCharsets.UTF_8));
-		}
-		return this;
+	public HandlerList handlerList() {
+		return handlerList;
 	}
 	
 	public synchronized void connect(String host, int port) {
@@ -94,24 +105,32 @@ public class Channel {
 		}
 		this.host = host;
 		this.port = port;
+		
 		if(Debugger.enableDebug()) {
 			System.out.println("starting connect to " + host + ":" + port);
 		}
-		if(loop == null) {
-			throw new ChannelException("set EventLoop before start Channel");
-		}
+		System.out.println("java connect to " + host+":"+port + " init fd");
 		initChannelfd();
-		if(useSsl) {
-			sslCtx.setSsl(channelfd, true);
+		if(sslCtx != null) {
+			if(!sslCtx.isClientMode()) {
+				throw new ChannelException("can not use a server-side sslcontext within client channel");
+			}
+			System.out.println("java connect to " + host+":"+port + " set ssl");
+			sslCtx.setSsl(channelfd);
 		}
-		if(!loop.running()) {
-			loop.init();
-		}
-		loop.eventAdd();
-		if(!connect(loop.getLoopfd(), channelfd, host.getBytes(), port)) {
-			return ;
-		}
-		loop.startLoop();
+		this.future = new ChannelFuture(host+port) {
+			public void apply() {
+				System.out.println("java connect to " + host+":"+port + " start");
+				active = true;
+				connect(channelfd, host.getBytes(), port);
+				active = false;
+			}
+		};
+		this.future.start();
+	}
+	
+	public void write(byte[] data) {
+		write(channelfd, data);
 	}
 	
 	public synchronized void close() {
@@ -120,9 +139,6 @@ public class Channel {
 		}
 		active = false;
 		close(channelfd);
-		if(clientSide) {
-			loop.eventRemove();
-		}
 	}
 	
 	public String remoteHost() {
@@ -147,11 +163,5 @@ public class Channel {
 	
 	protected long getChannelfd() {
 		return channelfd;
-	}
-	
-	protected void throwError(byte[] msg) {
-		//native channel will be closed when throwing exception 
-		active = false;
-		throw new ChannelException(new String(msg));
 	}
 }

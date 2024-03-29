@@ -15,6 +15,10 @@ public class ChannelException extends RuntimeException {
     	super(msg);
     }
     
+    public ChannelException(String msg, Throwable e) {
+    	super(msg, e);
+    }
+    
     public static ChannelException formatException(Exception e) {
     	StackTraceElement[] stacks = e.getStackTrace();
     	String msg = e.getLocalizedMessage();

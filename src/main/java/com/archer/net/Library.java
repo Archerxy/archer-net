@@ -52,6 +52,9 @@ final class Library {
 		Path dstPath = Paths.get(HOME.toString(), resource);
 		try(InputStream stream = Thread.currentThread().getContextClassLoader()
 				.getResourceAsStream(resource);) {
+			if(stream == null) {
+				throw new RuntimeException("resource not found " + resource);
+			}
 			byte[] buf = new byte[5 * 1024 * 1024];
 			int off = 0, count = 0;
 			while((count = stream.read(buf, off, buf.length - off)) >= 0) {
@@ -75,6 +78,7 @@ final class Library {
 				writeFile(src, dstPath);
 			}
 		} catch(Exception e) {
+			e.printStackTrace();
 			throw new RuntimeException("internal error: " + e.getLocalizedMessage());
 		}
 		System.load(dstPath.toAbsolutePath().toString());

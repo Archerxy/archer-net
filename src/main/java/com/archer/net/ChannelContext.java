@@ -59,7 +59,7 @@ public class ChannelContext {
 			last.onWrite(output);
 		} else {
 			if(channel.isActive()) {
-				EventLoop.write(channel.getChannelfd(), output.readAll());
+				channel.write(output.readAll());
 			} else {
 				if(Debugger.enableDebug()) {
 					System.err.println("channel is not active, writting is not supported");

@@ -8,9 +8,9 @@ import com.archer.net.Bytes;
 import com.archer.net.Channel;
 import com.archer.net.ChannelContext;
 import com.archer.net.Debugger;
-import com.archer.net.EventLoop;
+import com.archer.net.HandlerList;
 import com.archer.net.ServerChannel;
-import com.archer.net.SslContext;
+import com.archer.net.ssl.SslContext;
 
 
 public class P2PChannel {
@@ -19,21 +19,23 @@ public class P2PChannel {
 	
 	private ServerChannel server;
 	private Set<Channel> channels;
-	
+	private HandlerList handlerList;
 	private SslContext sslCtx;
+	
 	private int port;
+	private String host;
+
 	
-	private EventLoop eventLoop;
-	
-	public P2PChannel(int port) {
-		this(port, null);
+	public P2PChannel(String host, int port) {
+		this(host, port, null);
 	}
 	
-	public P2PChannel(int port, SslContext sslCtx) {
+	public P2PChannel(String host, int port, SslContext sslCtx) {
 		channels = new LinkedHashSet<>();
 		peers = new LinkedHashSet<>();
 		this.sslCtx = sslCtx;
 		this.port = port;
+		this.host = host;
 	}
 	
 	public P2PChannel peers(EndPoint... peers) throws IOException {
@@ -43,23 +45,23 @@ public class P2PChannel {
 		return this;
 	}
 	
-	public P2PChannel eventLoop(EventLoop loop) {
-		this.eventLoop = loop;
+	public P2PChannel handlerList(HandlerList handlerList) {
+		this.handlerList = handlerList;
 		return this;
 	}
 	
 	
 	public void start() {
-		if(eventLoop == null) {
-			eventLoop = new EventLoop();
+		if(handlerList == null) {
+			handlerList = new HandlerList();
 		}
-		eventLoop.addFirst(new P2PBaseHandler());
+		handlerList.addFirst(new P2PBaseHandler());
 		server = new ServerChannel(sslCtx);
-		server.eventLoop(eventLoop);
-		server.listen(port);
+		server.handlerList(handlerList);
+		server.listen(host, port);
 		for(EndPoint peer: peers) {
 			Channel ch = new Channel(sslCtx);
-			ch.eventLoop(eventLoop);
+			ch.handlerList(handlerList);
 			channels.add(ch);
 			ch.connect(peer.host(), peer.port());
 		}

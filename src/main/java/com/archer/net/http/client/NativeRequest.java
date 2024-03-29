@@ -11,11 +11,11 @@ import java.util.Map;
 import com.archer.net.Bytes;
 import com.archer.net.Channel;
 import com.archer.net.ChannelContext;
-import com.archer.net.EventLoop;
+import com.archer.net.HandlerList;
 import com.archer.net.handler.Handler;
 import com.archer.net.http.HttpException;
 import com.archer.net.http.HttpStatus;
-import com.archer.net.SslContext;
+import com.archer.net.ssl.SslContext;
 import com.archer.net.ssl.ProtocolVersion;
 
 public class NativeRequest {
@@ -78,8 +78,7 @@ public class NativeRequest {
 		
 		SslContext ctx = null;
 		if(url.isHttps()) {
-			ctx = new SslContext(opt.getSslProtocol(), opt.getSslProtocol());
-			ctx.verifyPeer(opt.verifyCert);
+			ctx = new SslContext(true, opt.isVerifyCert(), opt.getSslProtocol(), opt.getSslProtocol());
 			if(opt.verifyCert) {
 				if(opt.caPath() != null) {
 					ctx.trustCertificateAuth(opt.readSslCrt(opt.caPath()));
@@ -91,13 +90,12 @@ public class NativeRequest {
 		}
 		Channel ch = new Channel(ctx);
 		try {
-			EventLoop loop = new EventLoop();
+			HandlerList handlers = new HandlerList();
 			HttpRequestHandler handler = 
-					new HttpRequestHandler(new Bytes(getRequestAsBytes(method, url, opt, body))); 
-			loop.addHandlers(handler);
-			ch.eventLoop(loop);
+					new HttpRequestHandler(opt.getTimeout(), new Bytes(getRequestAsBytes(method, url, opt, body))); 
+			handlers.add(handler);
+			ch.handlerList(handlers);
 			ch.connect(url.getHost(), url.getPort());
-			
 			handler.await();
 			if(!handler.res.finished() && handler.err != null) {
 				throw handler.err;
@@ -412,8 +410,12 @@ public class NativeRequest {
 		Object lock = new Object();
 		Bytes requestData;
 		HttpException err;
+		long timeout;
 		
-		HttpRequestHandler(Bytes requestData) {
+		
+		
+		HttpRequestHandler(long timeout, Bytes requestData) {
+			this.timeout = timeout;
 			this.requestData = requestData;
 		}
 		
@@ -424,15 +426,15 @@ public class NativeRequest {
 			long start = System.currentTimeMillis();
 			synchronized(lock) {
 				try {
-					lock.wait(TIMEOUT);
+					lock.wait(timeout);
 				} catch (InterruptedException e) {}
 			}
 			long end = System.currentTimeMillis();
-			if(end - start >= TIMEOUT) {
+			if(end - start >= timeout) {
 				throw new HttpException(HttpStatus.BAD_REQUEST.getCode(), "connect timeout");
 			}
 		}
-
+		
 		@Override
 		public void onRead(ChannelContext ctx, Bytes input) {
 			if(res.headerParsed()) {
@@ -441,6 +443,7 @@ public class NativeRequest {
 				res.parseHead(input.readAll());
 			}
 			if(res.finished()) {
+				System.out.println("request on finish");
 				synchronized(lock) {
 					lock.notifyAll();
 				}
@@ -452,6 +455,7 @@ public class NativeRequest {
 		}
 		@Override
 		public void onError(ChannelContext ctx, Throwable t) {
+			System.out.println("request on error");
 			err = new HttpException(HttpStatus.SERVICE_UNAVAILABLE.getCode(), t.getMessage());
 			synchronized(lock) {
 				lock.notifyAll();
