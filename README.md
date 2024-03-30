@@ -17,8 +17,8 @@ support encrypted key and encrypted certificate
     String enclicrt = root + "crt/cli_en.crt";
 
     //event loop
-    EventLoop loop = new EventLoop();
-    loop.addHandlers(
+    HandlerList handlerlist = new HandlerList();
+    handlerlist.add(
         new FrameReadHandler(0, 2, 2),
         new AbstractWrappedHandler<Msg>() {
         @Override
@@ -76,18 +76,18 @@ support encrypted key and encrypted certificate
 
         //start a gmssl server
         System.out.println("start server.");
-        SslContext opt = new SslContext().trustCertificateAuth(caBytes).useCertificate(crtBytes, keyBytes).encrt(enCrtBytes).enkey(enKeyBytes);
+        SslContext opt = new SslContext(false, true).trustCertificateAuth(caBytes).useCertificate(crtBytes, keyBytes).useEncryptCertificate(enClicrtBytes, enClikeyBytes);
         ServerChannel server = new ServerChannel(opt);
-        server.eventLoop(loop);
-        server.listen(8081);
+        server.handlerList(handlerlist);
+        server.listen("127.0.0.1", 8081);
 
         // wait
         Thread.sleep(1000);
 
         //start a gmssl client
-        SslContext cliopt = new SslContext().trustCertificateAuth(caBytes).useCertificate(clicrtBytes, clikeyBytes).encrt(enClicrtBytes).enkey(enClikeyBytes);
+        SslContext cliopt = new SslContext(true, false).trustCertificateAuth(caBytes).useCertificate(clicrtBytes, clikeyBytes).useEncryptCertificate(enClicrtBytes, enClikeyBytes);
         Channel cli = new Channel(cliopt);
-        cli.eventLoop(loop);
+        cli.handlerList(handlerlist);
         cli.connect("127.0.0.1", 8081);
 
         //wait
@@ -117,8 +117,8 @@ support encrypted key and encrypted certificate
 
     System.out.println("start server.");
 		
-    EventLoop loop = new EventLoop();
-    loop.addHandlers(new HttpWrappedHandler() {
+    HandlerList handlerlist = new HandlerList();
+    handlerlist.add(new HttpWrappedHandler() {
 	@Override
 	public void handle(HttpRequest req, HttpResponse res) throws Exception {
 		String uri = req.getUri();
@@ -149,7 +149,7 @@ support encrypted key and encrypted certificate
 
     SslContext opt = new SslContext().trustCertificateAuth(caBytes).useCertificate(crtBytes, keyBytes);
     ServerChannel server = new ServerChannel(opt);
-    server.eventLoop(loop);
+    server.handlerList(handlerlist);
     server.listen(8080);
 ```
 ## http(s) client examples 

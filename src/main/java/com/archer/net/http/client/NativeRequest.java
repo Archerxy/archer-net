@@ -443,7 +443,6 @@ public class NativeRequest {
 				res.parseHead(input.readAll());
 			}
 			if(res.finished()) {
-				System.out.println("request on finish");
 				synchronized(lock) {
 					lock.notifyAll();
 				}
@@ -455,7 +454,6 @@ public class NativeRequest {
 		}
 		@Override
 		public void onError(ChannelContext ctx, Throwable t) {
-			System.out.println("request on error");
 			err = new HttpException(HttpStatus.SERVICE_UNAVAILABLE.getCode(), t.getMessage());
 			synchronized(lock) {
 				lock.notifyAll();

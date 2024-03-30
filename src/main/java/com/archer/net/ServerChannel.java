@@ -25,7 +25,6 @@ public class ServerChannel {
 	}
 	
 	protected void throwError(byte[] msg) {
-		close(serverfd);
 		running = false;
 		throw new ChannelException(new String(msg));
 	}
@@ -54,7 +53,6 @@ public class ServerChannel {
 	}
 	
 	public void handlerList(HandlerList handlerList) {
-		System.out.println("server channel add handler list");
 		this.handlerList = handlerList;
 	}
 	

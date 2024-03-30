@@ -109,18 +109,15 @@ public class Channel {
 		if(Debugger.enableDebug()) {
 			System.out.println("starting connect to " + host + ":" + port);
 		}
-		System.out.println("java connect to " + host+":"+port + " init fd");
 		initChannelfd();
 		if(sslCtx != null) {
 			if(!sslCtx.isClientMode()) {
 				throw new ChannelException("can not use a server-side sslcontext within client channel");
 			}
-			System.out.println("java connect to " + host+":"+port + " set ssl");
 			sslCtx.setSsl(channelfd);
 		}
 		this.future = new ChannelFuture(host+port) {
 			public void apply() {
-				System.out.println("java connect to " + host+":"+port + " start");
 				active = true;
 				connect(channelfd, host.getBytes(), port);
 				active = false;
