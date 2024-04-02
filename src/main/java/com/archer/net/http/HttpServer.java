@@ -8,6 +8,7 @@ public class HttpServer {
 	
 	private SslContext sslCtx;
 	private ServerChannel server;
+	private int threadNum;
 	
 	public HttpServer() {
 		this(null);
@@ -15,6 +16,10 @@ public class HttpServer {
 	
 	public HttpServer(SslContext sslCtx) {
 		this.sslCtx = sslCtx;
+	}
+	
+	public void setThreadNum(int threadNum) {
+		this.threadNum = threadNum;
 	}
 	
 	public void listen(String host, int port, HttpWrappedHandler handler) throws HttpServerException {
@@ -29,6 +34,9 @@ public class HttpServer {
 			server = new ServerChannel();
 		}
 		server.handlerList(handlerList);
+		if(threadNum > 0) {
+			server.useMultithreads(threadNum);
+		}
 		server.listen(host, port);
 	}
 	

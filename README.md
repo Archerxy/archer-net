@@ -31,7 +31,7 @@ support encrypted key and encrypted certificate
             msg.decode(in);
             return msg;
         }
-					
+            
         @Override
         public void onConnect(ChannelContext ctx) {
             Channel channel = ctx.channel();
@@ -95,7 +95,7 @@ support encrypted key and encrypted certificate
 
         //close client
         cli.close();
-				
+        
     } catch (Exception e) {
         e.printStackTrace();
     }
@@ -109,42 +109,42 @@ support encrypted key and encrypted certificate
     String crt = root + "crt/server.crt";
     String enkey = root + "crt/server_en.key";
     String encrt = root + "crt/server_en.crt";
-		
+    
     byte[] crtBytes= Files.readAllBytes(Paths.get(crt));
     byte[] keyBytes= Files.readAllBytes(Paths.get(key));
     byte[] enCrtBytes= Files.readAllBytes(Paths.get(encrt));
     byte[] enKeyBytes= Files.readAllBytes(Paths.get(enkey));
 
     System.out.println("start server.");
-		
+    
     HandlerList handlerlist = new HandlerList();
     handlerlist.add(new HttpWrappedHandler() {
-	@Override
-	public void handle(HttpRequest req, HttpResponse res) throws Exception {
-		String uri = req.getUri();
-		res.setContentType(ContentType.APPLICATION_JSON);
-		if(uri.equals("/nihao")) {
-			res.setStatus(HttpStatus.OK);
-			res.setContent("{\"nihao\":\"ni\"}".getBytes());
-		} else {
-			res.setStatus(HttpStatus.NOT_FOUND);
-			res.setContent("{\"nihao\":\"ni\"}".getBytes());
-		}
-	}
+        @Override
+        public void handle(HttpRequest req, HttpResponse res) throws Exception {
+            String uri = req.getUri();
+            res.setContentType(ContentType.APPLICATION_JSON);
+            if(uri.equals("/nihao")) {
+            res.setStatus(HttpStatus.OK);
+            res.setContent("{\"nihao\":\"ni\"}".getBytes());
+        } else {
+            res.setStatus(HttpStatus.NOT_FOUND);
+            res.setContent("{\"nihao\":\"ni\"}".getBytes());
+        }
+    }
 
-	@Override
-	public void handleException(HttpRequest req, HttpResponse res, Throwable t) {
-		t.printStackTrace();
-		String body = "{" +
-				"\"server\": \"Java/"+System.getProperty("java.version")+"\"," +
-				"\"time\": \"" + LocalDateTime.now().toString() + "\"," +
-				"\"status\": \"" + HttpStatus.SERVICE_UNAVAILABLE.getStatus() + "\"" +
-			"}";
+    @Override
+    public void handleException(HttpRequest req, HttpResponse res, Throwable t) {
+        t.printStackTrace();
+        String body = "{" +
+            "\"server\": \"Java/"+System.getProperty("java.version")+"\"," +
+            "\"time\": \"" + LocalDateTime.now().toString() + "\"," +
+            "\"status\": \"" + HttpStatus.SERVICE_UNAVAILABLE.getStatus() + "\"" +
+            "}";
 
-		res.setStatus(HttpStatus.SERVICE_UNAVAILABLE);
-		res.setContentType(ContentType.APPLICATION_JSON);
-		res.setContent(body.getBytes());
-	}
+        res.setStatus(HttpStatus.SERVICE_UNAVAILABLE);
+        res.setContentType(ContentType.APPLICATION_JSON);
+        res.setContent(body.getBytes());
+        }
     });
 
     SslContext opt = new SslContext().trustCertificateAuth(caBytes).useCertificate(crtBytes, keyBytes);
@@ -152,6 +152,42 @@ support encrypted key and encrypted certificate
     server.handlerList(handlerlist);
     server.listen(8080);
 ```
+or 
+``` java
+    String root = getCurrentWorkDir();
+
+    String ca = root + "crt/ca.crt";
+    String key = root + "crt/server.key";
+    String crt = root + "crt/server.crt";
+    String enkey = root + "crt/server_en.key";
+    String encrt = root + "crt/server_en.crt";
+    try {
+        byte[] caBytes= Files.readAllBytes(Paths.get(ca));
+        byte[] crtBytes= Files.readAllBytes(Paths.get(crt));
+        byte[] keyBytes= Files.readAllBytes(Paths.get(key));
+        byte[] enCrtBytes= Files.readAllBytes(Paths.get(encrt));
+        byte[] enKeyBytes= Files.readAllBytes(Paths.get(enkey));
+        
+        System.out.println("start server.");
+        SslContext opt = new SslContext(false).trustCertificateAuth(caBytes).useCertificate(crtBytes, keyBytes).useEncryptCertificate(enCrtBytes, enKeyBytes);
+        HttpServer server = new HttpServer(opt);
+        server.listen("127.0.0.1", 8081, new HttpWrappedHandler() {
+
+        @Override
+        public void handle(HttpRequest req, HttpResponse res) throws Exception {
+            //do something here
+        }
+
+        @Override
+        public void handleException(HttpRequest req, HttpResponse res, Throwable t) {
+            t.printStackTrace();
+        }
+        });
+    } catch(Exception e) {
+        e.printStackTrace();
+    }    
+```
+
 ## http(s) client examples 
 ``` java
     NativeResponse baidu = NativeRequest.get("https://www.baidu.com");
