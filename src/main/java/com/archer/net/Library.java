@@ -78,7 +78,6 @@ final class Library {
 				writeFile(src, dstPath);
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
 			throw new RuntimeException("internal error: " + e.getLocalizedMessage());
 		}
 		System.load(dstPath.toAbsolutePath().toString());

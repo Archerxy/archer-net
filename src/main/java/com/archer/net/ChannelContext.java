@@ -80,6 +80,10 @@ public class ChannelContext {
 		}
 	}
 	
+	public void close() {
+		channel.close();
+	}
+	
 	protected void onAccept() {
 		handler.onAccept(this);
 	}

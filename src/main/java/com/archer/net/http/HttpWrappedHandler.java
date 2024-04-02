@@ -91,7 +91,9 @@ public abstract class HttpWrappedHandler implements Handler {
 		HttpContext context = getHttpContext(ctx, true);
 		HttpRequest req = context.request;
 		HttpResponse res = context.response;
-		handleException(req, res, t);
+		try {
+			handleException(req, res, t);
+		} catch(Exception ignore) {}
 	}
 	
 	@Override

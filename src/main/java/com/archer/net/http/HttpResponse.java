@@ -52,7 +52,7 @@ public class HttpResponse {
 		headers = new HashMap<>(DEFAULT_HEADER_SIZE);
 		for(int i = 0; i < HEADER_KEY.length; i++) {
 			String key = HEADER_KEY[i], val = HEADER_VAL[i];
-			headers.put(key, val);
+			headers.put(key.toLowerCase(), val);
 		}
 	}
 	

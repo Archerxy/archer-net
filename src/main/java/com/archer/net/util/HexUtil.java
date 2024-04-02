@@ -26,4 +26,16 @@ public class HexUtil {
 		}
 		return ret;
 	}
+	
+	public static byte[] intToBytes(int n) {
+		if(n >= (1 << 24)) {
+			return new byte[] {(byte) ((n >> 24) & 0xff), (byte) ((n >> 16) & 0xff), (byte) ((n >> 8) & 0xff), (byte) (n & 0xff)};
+		} else if(n >= (1 << 16)) {
+			return new byte[] {(byte) ((n >> 16) & 0xff), (byte) ((n >> 8) & 0xff), (byte) (n & 0xff)};
+		} else if(n >= (1 << 8)) {
+			return new byte[] {(byte) ((n >> 8) & 0xff), (byte) (n & 0xff)};
+		} else {
+			return new byte[] {(byte) (n & 0xff)};
+		}
+	}
 }
