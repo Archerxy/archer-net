@@ -444,6 +444,7 @@ public class HttpRequest {
 					throw new HttpException(HttpStatus.BAD_REQUEST.getCode(),
 							"content bytes over flow.");
 				}
+				System.arraycopy(content, 0, this.content, pos, content.length);
 				pos += content.length;
 				if(pos == this.contentLength) {
 					finished = true;
