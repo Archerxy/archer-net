@@ -56,6 +56,9 @@ public abstract class WebSocketHandler implements Handler {
 			if(wsChannel.handshakeDone) {
 				if(wsChannel.parseWebSocketMessage(in, wsChannel.input)) {
 					onMessage(wsChannel, wsChannel.resetAndGet());
+				} else {
+					ctx.close();
+					onClose(wsChannel);
 				}
 			} else {
 				byte[] msg = in.readAll();
