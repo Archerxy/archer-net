@@ -26,9 +26,11 @@ public class BaseFrameHandler implements Handler {
 	@Override
 	public void onRead(ChannelContext ctx, Bytes in) {
 		BlockedMessage frame = toFrameMessage(ctx);
-		Bytes read = frame.read(in);
-		if(read != null) {
-			ctx.toNextOnRead(read);
+		while(in.available() > 0) {
+			Bytes read = frame.read(in);
+			if(read != null) {
+				ctx.toNextOnRead(read);
+			}
 		}
 	}
 
@@ -77,9 +79,8 @@ public class BaseFrameHandler implements Handler {
 		public BlockedMessage() {}
 		
 		public Bytes read(Bytes in) {
+			frameLock.lock();
 			try {
-				frameLock.lock();
-                
 				int readCount;
 				if(data == null) {
 					int dataLen = in.readInt32();
