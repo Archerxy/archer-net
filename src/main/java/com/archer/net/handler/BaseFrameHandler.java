@@ -93,7 +93,7 @@ public class BaseFrameHandler implements Handler {
 				}
 				in.read(data, pos, readCount);
 				pos += readCount;
-				if(readCount >= data.length) {
+				if(pos >= data.length) {
 					Bytes read =  new Bytes(data);
 					data = null;
 					pos = 0;
