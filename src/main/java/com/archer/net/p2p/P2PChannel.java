@@ -113,9 +113,7 @@ public class P2PChannel {
 		reconnectSchedule.scheduleAtFixedRate(
                 () -> {
                 	for(Channel channel: channels) {
-            			System.out.println("判断 " + channel.remoteHost() +":"+ channel.remotePort());
                 		if(!channel.isActive()) {
-                			System.out.println("重新连接 " + channel.remoteHost() +":"+ channel.remotePort());
                 			channel.connect(channel.remoteHost(), channel.remotePort());
                 		}
                 	}
