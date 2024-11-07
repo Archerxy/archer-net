@@ -454,6 +454,7 @@ public class NativeRequest {
 		}
 		@Override
 		public void onError(ChannelContext ctx, Throwable t) {
+			t.printStackTrace();
 			err = new HttpException(HttpStatus.SERVICE_UNAVAILABLE.getCode(), t.getMessage());
 			synchronized(lock) {
 				lock.notifyAll();
@@ -477,3 +478,4 @@ public class NativeRequest {
 	}
 	
 }
+

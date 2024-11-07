@@ -196,6 +196,7 @@ public class NativeResponse {
 				if(i >= res.length) {
 					return ;
 				}
+				isChunked = true;
 				s = i;
 				state = CHUNKED_LEN;
 				int len = 0;
@@ -293,3 +294,4 @@ public class NativeResponse {
 		return new String(Arrays.copyOfRange(res, i, i + ERROR_LEN > res.length ? res.length : i + ERROR_LEN));
 	}
 }
+
