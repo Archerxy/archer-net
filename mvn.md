@@ -1,10 +1,10 @@
 # mvn install to local repository
-mvn install:install-file -DgroupId="com.archer" -DartifactId="archer-tools" -Dversion="${version}" -Dpackaging=jar -Dfile=${path:}/archer-tools-1.1.5.jar
+mvn install:install-file -DgroupId="com.archer" -DartifactId="archer-net" -Dversion="${version}" -Dpackaging=jar -Dfile=${path:}/archer-net-1.1.3.jar
 
 
 # pom 
 <dependency>
     <groupId>com.archer</groupId>
-    <artifactId>archer-tools</artifactId>
+    <artifactId>archer-net</artifactId>
     <version>${version}</version>
 </dependency>
