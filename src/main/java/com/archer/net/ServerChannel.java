@@ -34,6 +34,8 @@ public class ServerChannel {
 	private int port;
 	
 	private int threadNum;
+	private ThreadPool pool;
+	
 	private SslContext sslCtx;
 	private HandlerList handlerList;
 	private ChannelFuture future;
@@ -48,8 +50,12 @@ public class ServerChannel {
 		this.sslCtx = sslCtx;
 	}
 	
-	public void useMultithreads(int threadNum) {
+	public void listenThreads(int threadNum) {
 		this.threadNum = threadNum;
+	}
+	
+	public void readThreads(int threadNum) {
+		this.pool = new ThreadPool(threadNum);
 	}
 	
 	public void handlerList(HandlerList handlerList) {
@@ -69,6 +75,10 @@ public class ServerChannel {
 		this.serverfd = init(this);
 		if(threadNum > 0) {
 			useThreadPool(serverfd, threadNum);
+		}
+		if(pool != null) {
+			pool.start();
+			handlerList.threadPool(pool);
 		}
 		if(Debugger.enableDebug()) {
 			System.out.println("server listenning on " + port);
@@ -96,9 +106,11 @@ public class ServerChannel {
 		}
 		running = false;
 		close(serverfd);
+		pool.stop();
 	}
 	
 	protected long getServerfd() {
 		return serverfd;
 	}
 }
+

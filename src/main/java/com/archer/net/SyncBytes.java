@@ -3,7 +3,7 @@ package com.archer.net;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-public final class Bytes {
+public class SyncBytes {
 	
     public static final int BUFFER_SIZE = 1024 * 1024;
     
@@ -13,17 +13,19 @@ public final class Bytes {
 	
 	private volatile int write;
 	
-	public Bytes() {
+	private Object lock = new Object();
+	
+	public SyncBytes() {
 		this(BUFFER_SIZE);
 	}
 	
-	public Bytes(int cap) {
+	public SyncBytes(int cap) {
 		data = new byte[cap];
 		read = 0;
 		write = 0;
 	}
 
-	public Bytes(byte[] data) {
+	public SyncBytes(byte[] data) {
 		this.data = data;
 		read = 0;
 		write = data.length;
@@ -62,13 +64,15 @@ public final class Bytes {
 	}
 	
 	public byte[] read(int len) {
-		if(len > write - read) {
-			throw new IllegalArgumentException("length out of range, max = " + 
-						(write - read) +", provide = " + len);
+		synchronized(lock) {
+			if(len > write - read) {
+				throw new IllegalArgumentException("length out of range, max = " + 
+							(write - read) +", provide = " + len);
+			}
+			byte[] ret = Arrays.copyOfRange(data, read, read+len);
+			read = read + len;
+			return ret;
 		}
-		byte[] ret = Arrays.copyOfRange(data, read, read+len);
-		read = read + len;
-		return ret;
 	}
 	
 	public byte[] readAll() {
@@ -80,16 +84,18 @@ public final class Bytes {
 	}
 	
 	public int read(byte[] out, int off, int len) {
-		if(len > write - read) {
-			throw new IllegalArgumentException("length out of range, max = " + 
-						(write - read) +", provide = " + len);
+		synchronized(lock) {
+			if(len > write - read) {
+				throw new IllegalArgumentException("length out of range, max = " + 
+							(write - read) +", provide = " + len);
+			}
+			if(off + len > out.length) {
+				throw new IllegalArgumentException("length out of range " + len);
+			}
+			System.arraycopy(data, read, out, off, len);
+			read = read + len;
+			return len;
 		}
-		if(off + len > out.length) {
-			throw new IllegalArgumentException("length out of range " + len);
-		}
-		System.arraycopy(data, read, out, off, len);
-		read = read + len;
-		return len;
 	}
 	
 	public int readInt8() {
@@ -135,23 +141,25 @@ public final class Bytes {
 			throw new IllegalArgumentException("length out range, max = " + 
 						(in.length - off) +", provide = " + len);
 		}
-		if(data.length - write + read < len) {
-			int newLen = data.length << 1;
-			while(newLen - write + read < len) {
-				newLen <<= 1;
+		synchronized(lock) { 
+			if(data.length - write + read < len) {
+				int newLen = data.length << 1;
+				while(newLen - write + read < len) {
+					newLen <<= 1;
+				}
+				byte[] tmp = new byte[newLen];
+				System.arraycopy(data, read, tmp, 0, write - read);
+				data = tmp;
+				write = write - read;
+				read = 0;
+			} else if(data.length - write < len) {
+				System.arraycopy(data, read, data, 0, write - read);
+				write = write - read;
+				read = 0;
 			}
-			byte[] tmp = new byte[newLen];
-			System.arraycopy(data, read, tmp, 0, write - read);
-			data = tmp;
-			write = write - read;
-			read = 0;
-		} else if(data.length - write < len) {
-			System.arraycopy(data, read, data, 0, write - read);
-			write = write - read;
-			read = 0;
+			System.arraycopy(in, off, data, write, len);
+			write += len;
 		}
-		System.arraycopy(in, off, data, write, len);
-		write += len;
 	}
 	
 	public void writeInt8(int i) {
@@ -266,5 +274,6 @@ public final class Bytes {
 		write(out.read(len));
 		return len;
 	}
+
 }
 

@@ -35,7 +35,8 @@ public class HttpServer {
 		}
 		server.handlerList(handlerList);
 		if(threadNum > 0) {
-			server.useMultithreads(threadNum);
+			server.listenThreads(threadNum);
+			server.readThreads(1);
 		}
 		server.listen(host, port);
 	}
@@ -44,4 +45,5 @@ public class HttpServer {
 		server.close();
 	}
 }
+
 

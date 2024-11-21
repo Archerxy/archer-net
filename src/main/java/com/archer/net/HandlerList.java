@@ -10,8 +10,19 @@ public final class HandlerList {
 	private Handler[] handlers = new Handler[DEFAULT_SIZE];
 	private int pos = 0;
 	
+	private ThreadPool pool = null;
+	
 	public HandlerList() {
     	this.container = new ChannelContextContainer();
+	}
+	public HandlerList(ThreadPool pool) {
+		this.pool = pool;
+    	this.container = new ChannelContextContainer();
+	}
+	
+	public HandlerList threadPool(ThreadPool pool) {
+		this.pool = pool;
+		return this;
 	}
 	
 	public void addFirst(Handler handler) {
@@ -92,11 +103,24 @@ public final class HandlerList {
 	
 	protected void onRead(Channel channel, byte[] data) {
 		ChannelContext ctx = findChannelContext(channel);
-		try {
-			ctx.onRead(new Bytes(data));
-		} catch(Exception e) {
-			ctx.onError(e);
-		}	
+		if(pool != null) {
+			pool.submit(new ThreadPoolTask() {
+				@Override
+				public void run() {
+					try {
+						ctx.onRead(new Bytes(data));
+					} catch(Exception e) {
+						ctx.onError(e);
+					}	
+				}
+			});
+		} else {
+			try {
+				ctx.onRead(new Bytes(data));
+			} catch(Exception e) {
+				ctx.onError(e);
+			}	
+		}
 	}
 	
 	protected void onDisconnect(Channel channel) {
@@ -138,3 +162,4 @@ public final class HandlerList {
     }
 
 }
+

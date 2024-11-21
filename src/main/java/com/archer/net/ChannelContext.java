@@ -1,7 +1,6 @@
 package com.archer.net;
 
 import com.archer.net.handler.Handler;
-import com.archer.net.message.OutputMessage;
 
 public class ChannelContext {
 	
@@ -16,10 +15,6 @@ public class ChannelContext {
 	public ChannelContext(Handler handler, Channel channel) {
 		this.handler = handler;
 		this.channel = channel;
-	}
-	
-	public void write(OutputMessage msg) {
-		onWrite(msg.encode());
 	}
 	
 	public void write(Bytes output) {
@@ -129,3 +124,4 @@ public class ChannelContext {
 	}
 	
 }
+

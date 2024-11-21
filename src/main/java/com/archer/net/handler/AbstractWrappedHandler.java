@@ -2,9 +2,8 @@ package com.archer.net.handler;
 
 import com.archer.net.Bytes;
 import com.archer.net.ChannelContext;
-import com.archer.net.message.Message;
 
-public abstract class AbstractWrappedHandler<I extends Message> implements Handler {
+public abstract class AbstractWrappedHandler<I> implements Handler {
 	
 	@Override
 	public void onRead(ChannelContext ctx, Bytes in) {
@@ -26,3 +25,4 @@ public abstract class AbstractWrappedHandler<I extends Message> implements Handl
 	public abstract I decode(Bytes in);
 	
 }
+

@@ -41,12 +41,14 @@ public class MultipartParser {
     	String[] partStrs = body.split(sep);
     	for(String s: partStrs) {
     		Multipart part = new Multipart();
-    		String[] headAndBody = s.split(PART_BODY);
-    		if(headAndBody.length != 2) {
+    		int off = s.indexOf(PART_BODY);
+    		
+    		if(off < 45) { // "Content-Disposition: ; name=;  Content-Type: "  etc
     			throw new HttpException(HttpStatus.BAD_REQUEST);
     		}
-    		parseHeader(headAndBody[0], part);
-    		String content = headAndBody[1];
+    		String partHead = s.substring(0, off);
+    		String content = s.substring(off + PART_BODY.length());
+    		parseHeader(partHead, part);
     		if(content.endsWith(LINE_LR)) {
     			content = content.substring(0, content.length() - LINE_LR.length());
     		}
@@ -83,3 +85,4 @@ public class MultipartParser {
     	}
     }
 }
+
