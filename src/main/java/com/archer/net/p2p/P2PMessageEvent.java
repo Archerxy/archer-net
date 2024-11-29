@@ -13,4 +13,3 @@ public interface P2PMessageEvent {
 	void onError(PeerChannel channel, Throwable t);
 	
 }
-

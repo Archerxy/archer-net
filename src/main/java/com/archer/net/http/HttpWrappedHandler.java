@@ -31,11 +31,12 @@ public abstract class HttpWrappedHandler implements Handler {
 		if(in.available() <= 0) {
 			return ;
 		}
-		
+
 		HttpContext context = getHttpContext(ctx, true);
 		HttpRequest req = context.request;
 		HttpResponse res = context.response;
 		byte[] msg = in.readAll();
+		req.lock();
 		try {
 			if(req.isEmpty()) {
 				try {
@@ -63,6 +64,8 @@ public abstract class HttpWrappedHandler implements Handler {
 			}
 		} catch(Exception e) {
 			onError(ctx, e);
+		} finally {
+			req.unlock();
 		}
 	}
 	

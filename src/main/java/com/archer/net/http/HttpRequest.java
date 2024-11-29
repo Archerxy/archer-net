@@ -258,148 +258,151 @@ public class HttpRequest {
 		if(msg.length <= HttpRequest.OPTION.length()) {
 			throw new HttpException(HttpStatus.BAD_REQUEST);
 		}
-		contentLock.lock();
-		try {
-			int i = 0, p = 0;
-			while(msg[i] != SPACE && i < HttpRequest.METHOD_LEN) {
-				i++;
-			}
-			if(i >= HttpRequest.METHOD_LEN) {
+		int i = 0, p = 0;
+		while(msg[i] != SPACE && i < HttpRequest.METHOD_LEN) {
+			i++;
+		}
+		if(i >= HttpRequest.METHOD_LEN) {
+			throw new HttpException(HttpStatus.BAD_REQUEST);
+		}
+		setMethod(new String(Arrays.copyOfRange(msg, p, i)));
+		i++;
+		p = i;
+		while(msg[i] != SPACE) {
+			if(msg[i] == ENTER || i == msg.length - 1) {
 				throw new HttpException(HttpStatus.BAD_REQUEST);
 			}
-			setMethod(new String(Arrays.copyOfRange(msg, p, i)));
 			i++;
-			p = i;
-			while(msg[i] != SPACE) {
-				if(msg[i] == ENTER || i == msg.length - 1) {
-					throw new HttpException(HttpStatus.BAD_REQUEST);
-				}
-				i++;
+		}
+		setUri(new String(Arrays.copyOfRange(msg, p, i)));
+		i++;
+		p = i;
+		while(msg[i] != ENTER) {
+			if(i == msg.length - 1) {
+				throw new HttpException(HttpStatus.BAD_REQUEST);
 			}
-			setUri(new String(Arrays.copyOfRange(msg, p, i)));
 			i++;
-			p = i;
-			while(msg[i] != ENTER) {
-				if(i == msg.length - 1) {
-					throw new HttpException(HttpStatus.BAD_REQUEST);
-				}
-				i++;
-			}
-			setHttpVersion(new String(Arrays.copyOfRange(msg, p, i)));
-			i++;
-			p = i;
-			int state = KEY_START;
-			String key = null, val = null;
-	    	for(; i < msg.length; i++) {
-	    		if(state == KEY_START && msg[i] == ENTER) {
-	    			break;
-	    		}
-	    		if(state == KEY_START && msg[i] == COLON) {
-	    			key = new String(Arrays.copyOfRange(msg, p, i)).trim();
-	    			p = i + 1;
-	    			state = VAL_START;
-	    			continue;
-	    		}
-	    		if(state == VAL_START && msg[i] == ENTER) {
-	    			if(key == null) {
-	    				throw new HttpException(HttpStatus.BAD_REQUEST);
-	    			}
-	    			val = new String(Arrays.copyOfRange(msg, p, i)).trim();
-	    			headers.put(toLowerCase(key), val);
-	    			p = i + 1;
-	    			state = KEY_START;
-	    		}
-	    	}
-			this.contentType = headers.getOrDefault(HEADER_CONTENT_TYPE, null);
-			this.contentEncoding = headers.getOrDefault(HEADER_CONTENT_ENCODE, null);
-			if(contentType != null && contentEncoding == null) {
-				int sem;
-				if((sem = contentType.indexOf(SEM)) > 0) {
-					contentEncoding = contentType.substring(sem + 1).trim();
-					if(!contentEncoding.startsWith(DEFAULT_ENCODING_KEY)) {
-						contentEncoding = DEFAULT_ENCODING_VAL;
-					} else {
-						contentEncoding = contentEncoding
-								.substring(DEFAULT_ENCODING_KEY.length() + 1).trim();
-					}
-				}
-			}
-			while(i < msg.length && msg[i] != ENTER) {
-				i++;
-			}
-			if(i < msg.length) {
-				i++;
-			}
-			String contentLengthStr = headers.getOrDefault(HEADER_CONTENT_LENGTH, null);
-			String transferEncoding = headers.getOrDefault(HEADER_TRANSFER_ENCODING, null);
-			if(contentLengthStr != null) {
-				try {
-					contentLength = Integer.parseInt(contentLengthStr);
-				} catch(Exception e) {
-					throw new HttpException(HttpStatus.BAD_REQUEST);
-				}
-				if(contentLength > 0) {
-					if(msg.length - i > contentLength) {
-						System.err.println("content remaining " + (msg.length - i) + 
-								"while content length is " + contentLengthStr);
-						throw new HttpException(HttpStatus.BAD_REQUEST);
-					}
-					if(i > msg.length) {
-						throw new HttpException(HttpStatus.BAD_REQUEST);
-					}
-					content = new byte[contentLength];
-					if(i < msg.length) {
-						System.arraycopy(msg, i, content, 0, msg.length - i);
-						pos += msg.length - i;
-					}
-				} else if(contentLength == 0) {
-					content = new byte[0];
+		}
+		setHttpVersion(new String(Arrays.copyOfRange(msg, p, i)));
+		i++;
+		p = i;
+		int state = KEY_START;
+		String key = null, val = null;
+    	for(; i < msg.length; i++) {
+    		if(state == KEY_START && msg[i] == ENTER) {
+    			break;
+    		}
+    		if(state == KEY_START && msg[i] == COLON) {
+    			key = new String(Arrays.copyOfRange(msg, p, i)).trim();
+    			p = i + 1;
+    			state = VAL_START;
+    			continue;
+    		}
+    		if(state == VAL_START && msg[i] == ENTER) {
+    			if(key == null) {
+    				throw new HttpException(HttpStatus.BAD_REQUEST);
+    			}
+    			val = new String(Arrays.copyOfRange(msg, p, i)).trim();
+    			headers.put(toLowerCase(key), val);
+    			p = i + 1;
+    			state = KEY_START;
+    		}
+    	}
+		this.contentType = headers.getOrDefault(HEADER_CONTENT_TYPE, null);
+		this.contentEncoding = headers.getOrDefault(HEADER_CONTENT_ENCODE, null);
+		if(contentType != null && contentEncoding == null) {
+			int sem;
+			if((sem = contentType.indexOf(SEM)) > 0) {
+				contentEncoding = contentType.substring(sem + 1).trim();
+				if(!contentEncoding.startsWith(DEFAULT_ENCODING_KEY)) {
+					contentEncoding = DEFAULT_ENCODING_VAL;
 				} else {
+					contentEncoding = contentEncoding
+							.substring(DEFAULT_ENCODING_KEY.length() + 1).trim();
+				}
+			}
+		}
+		while(i < msg.length && msg[i] != ENTER) {
+			i++;
+		}
+		if(i < msg.length) {
+			i++;
+		}
+		String contentLengthStr = headers.getOrDefault(HEADER_CONTENT_LENGTH, null);
+		String transferEncoding = headers.getOrDefault(HEADER_TRANSFER_ENCODING, null);
+		if(contentLengthStr != null) {
+			try {
+				contentLength = Integer.parseInt(contentLengthStr);
+			} catch(Exception e) {
+				throw new HttpException(HttpStatus.BAD_REQUEST);
+			}
+			if(contentLength > 0) {
+				if(msg.length - i > contentLength) {
+					System.err.println("content remaining " + (msg.length - i) + 
+							"while content length is " + contentLengthStr);
 					throw new HttpException(HttpStatus.BAD_REQUEST);
 				}
-				if(pos == contentLength) {
-					finished = true;
+				if(i > msg.length) {
+					throw new HttpException(HttpStatus.BAD_REQUEST);
 				}
-			} else if(transferEncoding != null && CHUNKED.equals(transferEncoding)) {
-				isChunked = true;
-				int s = i, len = 0;
-				state = CHUNKED_LEN;
-				for(; i < msg.length; i++) {
-		    		if(state == CHUNKED_LEN && msg[i] == ENTER) {
-		    			len = HexUtil.bytesToInt(msg, s, i - 1);
-		    			state = CHUNKED_VAL;
-		    			if(len == 0) {
-		    				finished = true;
-		    				content = chunkedBody.readAll();
-		    				break;
-		    			} else {
-		    				if(len + i + 1 > msg.length) {
-		    					remainBody.write(msg, s, msg.length - s);
-		    					break;
-		    				} else {
-		    					chunkedBody.write(msg, i + 1, len);
-		    				}
-		    				i += 1 + len;
-		    			}
-		    			continue;
-		    		}
-		    		if(state == CHUNKED_VAL && msg[i] == ENTER) {
-		    			s = i + 1;
-		    			state = CHUNKED_LEN;
-		    		}
+				content = new byte[contentLength];
+				if(i < msg.length) {
+					System.arraycopy(msg, i, content, 0, msg.length - i);
+					pos += msg.length - i;
 				}
-			} else {
-				contentLength = 0;
+			} else if(contentLength == 0) {
 				content = new byte[0];
+			} else {
+				throw new HttpException(HttpStatus.BAD_REQUEST);
+			}
+			if(pos == contentLength) {
 				finished = true;
 			}
-			if(finished) {
-				chunkedBody.clear();
-				remainBody.clear();
+		} else if(transferEncoding != null && CHUNKED.equals(transferEncoding)) {
+			isChunked = true;
+			int s = i, len = 0;
+			state = CHUNKED_LEN;
+			for(; i < msg.length; i++) {
+	    		if(state == CHUNKED_LEN && msg[i] == ENTER) {
+	    			len = HexUtil.bytesToInt(msg, s, i - 1);
+	    			state = CHUNKED_VAL;
+	    			if(len == 0) {
+	    				finished = true;
+	    				content = chunkedBody.readAll();
+	    				break;
+	    			} else {
+	    				if(len + i + 1 > msg.length) {
+	    					remainBody.write(msg, s, msg.length - s);
+	    					break;
+	    				} else {
+	    					chunkedBody.write(msg, i + 1, len);
+	    				}
+	    				i += 1 + len;
+	    			}
+	    			continue;
+	    		}
+	    		if(state == CHUNKED_VAL && msg[i] == ENTER) {
+	    			s = i + 1;
+	    			state = CHUNKED_LEN;
+	    		}
 			}
-		} finally {
-			contentLock.unlock();
+		} else {
+			contentLength = 0;
+			content = new byte[0];
+			finished = true;
 		}
+		if(finished) {
+			chunkedBody.clear();
+			remainBody.clear();
+		}
+	}
+	
+	protected void lock() {
+		contentLock.lock();
+	}
+	
+	protected void unlock() {
+		contentLock.unlock();
 	}
 	
 	protected synchronized void putContent(byte[] content) {

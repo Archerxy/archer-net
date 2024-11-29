@@ -25,4 +25,3 @@ public abstract class AbstractWrappedHandler<I> implements Handler {
 	public abstract I decode(Bytes in);
 	
 }
-

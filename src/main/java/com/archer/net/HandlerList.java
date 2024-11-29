@@ -104,16 +104,7 @@ public final class HandlerList {
 	protected void onRead(Channel channel, byte[] data) {
 		ChannelContext ctx = findChannelContext(channel);
 		if(pool != null) {
-			pool.submit(new ThreadPoolTask() {
-				@Override
-				public void run() {
-					try {
-						ctx.onRead(new Bytes(data));
-					} catch(Exception e) {
-						ctx.onError(e);
-					}	
-				}
-			});
+			pool.submit(new Bytes(data), ctx);
 		} else {
 			try {
 				ctx.onRead(new Bytes(data));
@@ -162,4 +153,3 @@ public final class HandlerList {
     }
 
 }
-

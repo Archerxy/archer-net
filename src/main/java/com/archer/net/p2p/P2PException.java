@@ -8,4 +8,3 @@ public class P2PException  extends RuntimeException {
 		super(msg);
 	}
 }
-

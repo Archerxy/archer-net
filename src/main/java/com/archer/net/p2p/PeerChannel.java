@@ -70,4 +70,3 @@ public class PeerChannel {
 		return ret;
 	}
 }
-

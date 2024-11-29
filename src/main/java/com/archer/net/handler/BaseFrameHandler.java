@@ -33,7 +33,7 @@ public class BaseFrameHandler implements Handler {
 			}
 		}
 	}
-
+	
 	@Override
 	public void onWrite(ChannelContext ctx, Bytes out) {
 		Bytes wrap = new Bytes(out.available() + 16);

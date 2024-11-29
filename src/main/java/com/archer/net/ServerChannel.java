@@ -50,9 +50,12 @@ public class ServerChannel {
 		this.sslCtx = sslCtx;
 	}
 	
-	public void setThreads(int threadNum) {
+	public void setLoopThreads(int threadNum) {
 		//(main loop thread) + (child loop threads) = threadNum;
 		this.threadNum = threadNum > 0 ? threadNum - 1 : 0;
+	}
+	
+	public void setReadThreads(int threadNum) {
 		if(threadNum > 0) {
 			this.pool = new ThreadPool(threadNum);
 		}
@@ -113,4 +116,3 @@ public class ServerChannel {
 		return serverfd;
 	}
 }
-

@@ -29,7 +29,7 @@
 </distributionManagement>
 
   <build>
-    <finalName>archer-net-${version}</finalName>
+    <finalName>archer-net-${project.version}</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

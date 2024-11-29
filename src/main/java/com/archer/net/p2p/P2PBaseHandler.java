@@ -303,4 +303,3 @@ public class P2PBaseHandler implements Handler {
 		}
 	}
 }
-

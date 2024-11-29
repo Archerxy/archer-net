@@ -17,4 +17,3 @@ public class P2PUtil {
 		return ch.getRemoteHost() + ":" + ch.getRemotePort();
 	}
 }
-

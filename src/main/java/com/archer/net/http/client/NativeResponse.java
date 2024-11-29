@@ -294,4 +294,3 @@ public class NativeResponse {
 		return new String(Arrays.copyOfRange(res, i, i + ERROR_LEN > res.length ? res.length : i + ERROR_LEN));
 	}
 }
-
