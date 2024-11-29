@@ -43,7 +43,7 @@ public class MultipartParser {
     		Multipart part = new Multipart();
     		int off = s.indexOf(PART_BODY);
     		
-    		if(off < 45) { // "Content-Disposition: ; name=;  Content-Type: "  etc
+    		if(off < 32) { // "Content-Disposition: ; name=;  Content-Type: "  etc
     			throw new HttpException(HttpStatus.BAD_REQUEST);
     		}
     		String partHead = s.substring(0, off);

@@ -5,20 +5,42 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class ThreadPool {
 	
 	private volatile boolean running;
-	private Thread[] threads;
-	
-	private Object cond = new Object();
-	private ConcurrentLinkedQueue<ThreadPoolTask> queue = new ConcurrentLinkedQueue<>();
+	private PooledThread[] threads;
 	
 	public ThreadPool(int threadNum) {
-		this.threads = new Thread[threadNum];
+		this.threads = new PooledThread[threadNum];
 		this.running = false;
 	}
 	
 	public void submit(ThreadPoolTask task) {
-		queue.offer(task);
-		synchronized(cond) {
-			cond.notify();
+		long id = Thread.currentThread().getId();
+		PooledThread theThread = null;
+		for(int i = 0; i < threads.length; i++) {
+			if(threads[i].loopThreadId == 0) {
+				theThread = threads[i];
+				continue ;
+			}
+			if(threads[i].loopThreadId == id) {
+				theThread = threads[i];
+				break ;
+			}
+		}
+		if(theThread == null) {
+			int index = 0;
+			long time = threads[0].lastAccess;
+			for(int i = 1; i < threads.length; i++) {
+				if(threads[i].lastAccess > time) {
+					time = threads[i].lastAccess;
+					index = i;
+				}
+			}
+			threads[index].loopThreadId = id;
+			theThread = threads[index];
+		}
+		theThread.queue.offer(task);
+		theThread.lastAccess = System.currentTimeMillis();
+		synchronized(theThread.cond) {
+			theThread.cond.notify();
 		}
 	}
 	
@@ -36,8 +58,10 @@ public class ThreadPool {
 	
 	public void stop() {
 		this.running = false;
-		synchronized(cond) {
-			cond.notifyAll();
+		for(int i = 0; i < threads.length; i++) {
+			synchronized(threads[i].cond) {
+				threads[i].cond.notifyAll();
+			}
 		}
 	}
 	
@@ -46,8 +70,11 @@ public class ThreadPool {
 	}
 	
 	private static class PooledThread extends Thread {
-		
+		ConcurrentLinkedQueue<ThreadPoolTask> queue = new ConcurrentLinkedQueue<>();
 		ThreadPool pool;
+		Object cond = new Object();
+		long loopThreadId = 0;
+		long lastAccess;
 		
 	    public PooledThread(ThreadPool pool) {
 			this.pool = pool;
@@ -56,11 +83,11 @@ public class ThreadPool {
 		@Override
 	    public void run() {
 			while(pool.running) {
-				ThreadPoolTask task = pool.queue.poll();
+				ThreadPoolTask task = queue.poll();
 				if(task == null) {
 					try {
-						synchronized(pool.cond) {
-							pool.cond.wait();
+						synchronized(cond) {
+							cond.wait();
 						}
 					} catch (InterruptedException ignore) {}
 					

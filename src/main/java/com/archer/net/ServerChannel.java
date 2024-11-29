@@ -50,12 +50,12 @@ public class ServerChannel {
 		this.sslCtx = sslCtx;
 	}
 	
-	public void listenThreads(int threadNum) {
-		this.threadNum = threadNum;
-	}
-	
-	public void readThreads(int threadNum) {
-		this.pool = new ThreadPool(threadNum);
+	public void setThreads(int threadNum) {
+		//(main loop thread) + (child loop threads) = threadNum;
+		this.threadNum = threadNum > 0 ? threadNum - 1 : 0;
+		if(threadNum > 0) {
+			this.pool = new ThreadPool(threadNum);
+		}
 	}
 	
 	public void handlerList(HandlerList handlerList) {
