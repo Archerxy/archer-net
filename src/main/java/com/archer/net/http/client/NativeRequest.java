@@ -71,8 +71,14 @@ public class NativeRequest {
     }
 	
 	public static NativeResponse request(String method, String httpUrl, byte[] body, Options opt) {
+		if(method == null || httpUrl == null) {
+			throw new NullPointerException();
+		}
 		if(opt == null) {
 			opt = new Options();
+		}
+		if(body == null) {
+			body = new byte[0];
 		}
 		HttpUrl url = HttpUrl.parse(httpUrl);
 		
@@ -478,3 +484,4 @@ public class NativeRequest {
 	}
 	
 }
+

@@ -95,8 +95,14 @@ public class NioRequest {
 	
 	public static NioResponse request(String method, String httpUrl, byte[] body, Options option)
 			throws IOException {
+		if(method == null || httpUrl == null) {
+			throw new NullPointerException();
+		}
 		if(option == null) {
 			option = new Options();
+		}
+		if(body == null) {
+			body = new byte[0];
 		}
 		HttpUrl url = HttpUrl.parse(httpUrl);
     	
@@ -788,3 +794,4 @@ public class NioRequest {
 		}
 	}
 }
+
